@@ -2,12 +2,14 @@
 import sys
 import os
 import sqlite3
+from datetime import datetime
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QMessageBox, QFileDialog, QDialog, QLabel
 from PyQt6.uic import loadUi
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QIcon, QAction
 from database import DatabaseManager
 from pdf_generator import generate_pdf
+from excel_generator import generate_excel
 
 # --- Función Auxiliar para PyInstaller ---
 def resource_path(relative_path):
@@ -62,12 +64,9 @@ class LoginDialog(QDialog):
 
 # --- Ventana Principal ---
 class MainWindow(QMainWindow):
-    # --- CORRECCIÓN AQUÍ ---
-    # El 'parent' es opcional y por defecto es None.
     def __init__(self, inventory_id, app_instance=None):
-        super(MainWindow, self).__init__() # No pasamos el 'parent' al constructor de QMainWindow
-        self.app_instance = app_instance # Guardamos la referencia a nuestra App
-        # --- FIN DE LA CORRECCIÓN ---
+        super(MainWindow, self).__init__()
+        self.app_instance = app_instance
         
         loadUi(resource_path("ui_inventario.ui"), self)
         
@@ -128,18 +127,18 @@ class MainWindow(QMainWindow):
         file_menu.addAction(exit_action)
 
     def switch_center(self):
-        # --- CORRECCIÓN AQUÍ ---
-        # Usamos la referencia guardada 'app_instance'
         if self.app_instance:
             self.app_instance.should_switch_user = True
-        # --- FIN DE LA CORRECCIÓN ---
         self.close()
 
     def connect_signals(self):
-        self.btn_guardar_inventario.clicked.connect(self.save_general_info)
-        self.btn_select_plano.clicked.connect(self.select_plano)
+        # Botones de Acción Global
+        self.btn_guardar_todo.clicked.connect(self.save_all_data)
+        self.btn_exportar_excel.clicked.connect(self.export_to_excel)
         self.btn_exportar_pdf.clicked.connect(self.export_to_pdf)
+        self.btn_select_plano.clicked.connect(self.select_plano)
 
+        # Conexiones para GUARDAR (añadir/actualizar)
         self.btn_save_pc.clicked.connect(self.save_pc)
         self.btn_save_proyector.clicked.connect(self.save_proyector)
         self.btn_save_impresora.clicked.connect(self.save_impresora)
@@ -151,6 +150,7 @@ class MainWindow(QMainWindow):
         self.btn_save_software.clicked.connect(self.save_software)
         self.btn_save_credencial.clicked.connect(self.save_credencial)
 
+        # Conexiones para LIMPIAR CAMPOS
         self.btn_clear_pc.clicked.connect(self.clear_pc_inputs)
         self.btn_clear_proyector.clicked.connect(self.clear_proyector_inputs)
         self.btn_clear_impresora.clicked.connect(self.clear_impresora_inputs)
@@ -162,6 +162,7 @@ class MainWindow(QMainWindow):
         self.btn_clear_software.clicked.connect(self.clear_software_inputs)
         self.btn_clear_credencial.clicked.connect(self.clear_credencial_inputs)
 
+        # Conexiones para ELIMINAR
         self.btn_del_pc.clicked.connect(lambda: self.delete_item('pcs', self.table_pcs, self.clear_pc_inputs))
         self.btn_del_proyector.clicked.connect(lambda: self.delete_item('proyectores', self.table_proyectores, self.clear_proyector_inputs))
         self.btn_del_impresora.clicked.connect(lambda: self.delete_item('impresoras', self.table_impresoras, self.clear_impresora_inputs))
@@ -173,6 +174,7 @@ class MainWindow(QMainWindow):
         self.btn_del_software.clicked.connect(lambda: self.delete_item('software', self.table_software, self.clear_software_inputs))
         self.btn_del_credencial.clicked.connect(lambda: self.delete_item('credenciales', self.table_credenciales, self.clear_credencial_inputs))
         
+        # Conexiones de DOBLE CLIC para editar
         self.table_pcs.cellDoubleClicked.connect(self.edit_pc)
         self.table_proyectores.cellDoubleClicked.connect(self.edit_proyector)
         self.table_impresoras.cellDoubleClicked.connect(self.edit_impresora)
@@ -190,7 +192,10 @@ class MainWindow(QMainWindow):
             self.input_cliente.setText(data[1])
             self.input_ubicacion.setText(data[2])
             self.input_responsable.setText(data[3])
-            self.date_fecha.setDate(QDate.fromString(data[4], "dd/MM/yyyy"))
+            try:
+                self.date_fecha.setDate(QDate.fromString(data[4], "dd/MM/yyyy"))
+            except:
+                self.date_fecha.setDate(QDate.currentDate())
             self.text_estructura.setPlainText(data[5])
             self.text_ubicacion_manuales.setPlainText(data[6])
             self.text_historico.setPlainText(data[7])
@@ -201,7 +206,7 @@ class MainWindow(QMainWindow):
             
             self.refresh_all_tables()
 
-    def save_general_info(self):
+    def save_all_data(self):
         data = (
             self.input_cliente.text(), self.input_ubicacion.text(), self.input_responsable.text(),
             self.date_fecha.date().toString("dd/MM/yyyy"), self.text_estructura.toPlainText(),
@@ -214,7 +219,7 @@ class MainWindow(QMainWindow):
                    equipos_extra=?, plano_path=? WHERE id=?"""
         self.db.execute_query(query, data + (self.current_inventory_id,))
         self.setWindowTitle(f"Inventario - {data[0]}")
-        QMessageBox.information(self, "Éxito", "Información general actualizada.")
+        QMessageBox.information(self, "Éxito", "Toda la información general ha sido guardada.")
 
     def select_plano(self):
         filename, _ = QFileDialog.getOpenFileName(self, "Seleccionar Plano", "", "Images (*.png *.xpm *.jpg *.jpeg)")
@@ -364,7 +369,6 @@ class MainWindow(QMainWindow):
             self.db.execute_query("UPDATE servidores SET codigo=?, modelo=?, uso=?, ubicacion_equipo=?, observaciones=? WHERE id=?", data_tuple + (self.editing_srv_id,))
         self.refresh_table('servidores', self.table_servidores, ['ID', 'Código', 'Modelo', 'Uso', 'Ubicación', 'Obs.'])
         self.clear_servidor_inputs()
-
     # --- SECCIÓN RED ---
     def clear_red_inputs(self):
         self.editing_red_id = None
@@ -501,14 +505,14 @@ class MainWindow(QMainWindow):
         self.refresh_table('credenciales', self.table_credenciales, ['ID', 'Elemento', 'Usuario', 'Contraseña', 'Notas'])
         self.clear_credencial_inputs()
 
-    # --- Exportación ---
-    def export_to_pdf(self):
+    def _get_full_data_for_export(self):
+        """Helper function to gather all data for exports."""
         inv_data = self.db.fetch_one("SELECT * FROM inventarios WHERE id=?", (self.current_inventory_id,))
         if not inv_data:
             QMessageBox.warning(self, "Error", "No se encontró información del inventario.")
-            return
+            return None
 
-        pdf_data = {
+        return {
             "cliente": inv_data[1], "ubicacion": inv_data[2], "responsable": inv_data[3], "fecha": inv_data[4],
             "estructura_info": inv_data[5] or "", "ubicacion_manuales": inv_data[6] or "", 
             "historico_problemas": inv_data[7] or "", "modo_trabajo": inv_data[8] or "", 
@@ -525,13 +529,40 @@ class MainWindow(QMainWindow):
             "credenciales": self.db.fetch_all("SELECT * FROM credenciales WHERE inventario_id=?", (self.current_inventory_id,))
         }
 
-        filename, _ = QFileDialog.getSaveFileName(self, "Guardar PDF", f"Auditoria_{pdf_data['cliente']}.pdf", "PDF Files (*.pdf)")
+    # --- Exportación a PDF ---
+    def export_to_pdf(self):
+        export_data = self._get_full_data_for_export()
+        if not export_data:
+            return
+
+        filename, _ = QFileDialog.getSaveFileName(self, "Guardar PDF", f"Auditoria_{export_data['cliente']}.pdf", "PDF Files (*.pdf)")
         if filename:
             try:
-                generate_pdf(filename, pdf_data)
+                generate_pdf(filename, export_data)
                 QMessageBox.information(self, "Éxito", f"PDF generado correctamente en:\n{filename}")
             except Exception as e:
                 QMessageBox.critical(self, "Error de Exportación", f"No se pudo generar el PDF. Error: {e}")
+
+    # --- Exportación a Excel ---
+    def export_to_excel(self):
+        export_data = self._get_full_data_for_export()
+        if not export_data:
+            return
+        
+        # Generar nombre de archivo con fecha y hora
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
+        cliente_name_safe = "".join(x for x in export_data['cliente'] if x.isalnum() or x in " -_").rstrip()
+        default_filename = f"Inventario_{cliente_name_safe}_{timestamp}.xlsx"
+
+        filename, _ = QFileDialog.getSaveFileName(self, "Guardar Excel", default_filename, "Excel Files (*.xlsx)")
+        if filename:
+            try:
+                generate_excel(filename, export_data)
+                QMessageBox.information(self, "Éxito", f"Archivo Excel generado correctamente en:\n{filename}")
+            except Exception as e:
+                QMessageBox.critical(self, "Error de Exportación", f"No se pudo generar el archivo Excel. Error: {e}")
+
 
 # --- Bucle principal de la aplicación ---
 class App(QApplication):
@@ -550,10 +581,7 @@ class App(QApplication):
                 break
 
             inventory_id = login.selected_inventory_id
-            # --- CORRECCIÓN AQUÍ ---
-            # Pasamos 'self' como la instancia de la app.
             self.main_window = MainWindow(inventory_id, app_instance=self)
-            # --- FIN DE LA CORRECCIÓN ---
             self.main_window.show()
             self.exec()
             
