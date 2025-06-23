@@ -1,1 +1,1 @@
-pyinstaller --onefile --windowed --add-data "logo.png;." --add-data "ui_inventario.ui;." --add-data "ui_login.ui;." --add-data "detail_view_dialog.ui;." --add-data "search_dialog.ui;." main.py
+pyinstaller --onefile --windowed --icon="appicon.ico" --add-data "logo.png;." --add-data "ui_login.ui;." --add-data "detail_view_dialog.ui;." --add-data "search_dialog.ui;." --add-data "dashboard_widgets.py;." --add-data "excel_generator.py;." --add-data "pdf_generator.py;." --add-data "database.py;." main.py

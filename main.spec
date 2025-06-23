@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('logo.png', '.'), ('ui_inventario.ui', '.'), ('ui_login.ui', '.'), ('detail_view_dialog.ui', '.'), ('search_dialog.ui', '.')],
+    datas=[('logo.png', '.'), ('ui_login.ui', '.'), ('detail_view_dialog.ui', '.'), ('search_dialog.ui', '.'), ('dashboard_widgets.py', '.'), ('excel_generator.py', '.'), ('pdf_generator.py', '.'), ('database.py', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,4 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['appicon.ico'],
 )
