@@ -74,7 +74,6 @@ class DatabaseManager:
             )
         ''')
 
-        # --- NUEVAS TABLAS ---
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS cctv_recorders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
@@ -104,6 +103,16 @@ class DatabaseManager:
                 id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
                 elemento TEXT, usuario TEXT, clave TEXT, notas TEXT,
                 FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
+            )
+        ''')
+        
+        # --- NUEVA TABLA PARA IMÁGENES ---
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS images (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_type TEXT NOT NULL,
+                item_id INTEGER NOT NULL,
+                image_path TEXT NOT NULL
             )
         ''')
 

@@ -355,13 +355,6 @@
           </column>
          </widget>
         </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_pc">
-          <property name="text">
-           <string>Eliminar PC seleccionado (-)</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="tab_proyectores">
@@ -495,13 +488,6 @@
             <string>Obs.</string>
            </property>
           </column>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_proyector">
-          <property name="text">
-           <string>Eliminar seleccionado (-)</string>
-          </property>
          </widget>
         </item>
        </layout>
@@ -644,13 +630,6 @@
           </column>
          </widget>
         </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_impresora">
-          <property name="text">
-           <string>Eliminar seleccionada (-)</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="tab_red">
@@ -711,7 +690,7 @@
              </property>
             </widget>
            </item>
-           <item row_2_col_1_colspan="3">
+           <item row="2" column="1" colspan="3">
             <widget class="QLineEdit" name="input_srv_obs"/>
            </item>
            <item row="3" column="0" colspan="4">
@@ -773,13 +752,6 @@
             <string>Obs.</string>
            </property>
           </column>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_servidor">
-          <property name="text">
-           <string>Eliminar Servidor seleccionado (-)</string>
-          </property>
          </widget>
         </item>
         <item>
@@ -868,7 +840,7 @@
              </property>
             </widget>
            </item>
-           <item row_2_col_1_colspan="3">
+           <item row="2" column="1" colspan="3">
             <widget class="QLineEdit" name="input_red_obs"/>
            </item>
            <item row="3" column="0" colspan="4">
@@ -930,13 +902,6 @@
             <string>Obs.</string>
            </property>
           </column>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_red">
-          <property name="text">
-           <string>Eliminar Equipo de Red seleccionado (-)</string>
-          </property>
          </widget>
         </item>
        </layout>
@@ -1064,13 +1029,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_del_cctv_recorder">
-          <property name="text">
-           <string>Eliminar Grabador seleccionado (-)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="Line" name="line_4">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -1192,13 +1150,6 @@
             <string>Obs.</string>
            </property>
           </column>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_cctv_camera">
-          <property name="text">
-           <string>Eliminar Cámara seleccionada (-)</string>
-          </property>
          </widget>
         </item>
        </layout>
@@ -1346,13 +1297,6 @@
           </column>
          </widget>
         </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_acceso">
-          <property name="text">
-           <string>Eliminar Dispositivo seleccionado (-)</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="tab_extras">
@@ -1430,13 +1374,6 @@
             <string>Licencia</string>
            </property>
           </column>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_software">
-          <property name="text">
-           <string>Eliminar Software seleccionado (-)</string>
-          </property>
          </widget>
         </item>
         <item>
@@ -1575,19 +1512,37 @@
           </column>
          </widget>
         </item>
-        <item>
-         <widget class="QPushButton" name="btn_del_credencial">
-          <property name="text">
-           <string>Eliminar Credencial seleccionada (-)</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_7">
+      <item>
+       <widget class="QPushButton" name="btn_search">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Buscar...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
       <item>
        <widget class="QPushButton" name="btn_guardar_todo">
         <property name="font">
