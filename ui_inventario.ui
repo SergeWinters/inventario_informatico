@@ -38,7 +38,7 @@
            <item>
             <widget class="QFrame" name="frame_kpi_pcs">
              <property name="styleSheet">
-              <string notr="true">QFrame { background-color: #e3f2fd; border-radius: 10px; }</string>
+              <string notr="true">QFrame { background-color:rgb(5, 46, 75); border-radius: 10px; }</string>
              </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
@@ -87,7 +87,7 @@
            <item>
             <widget class="QFrame" name="frame_kpi_network">
              <property name="styleSheet">
-              <string notr="true">QFrame { background-color: #e8f5e9; border-radius: 10px; }</string>
+              <string notr="true">QFrame { background-color:rgb(59, 155, 67); border-radius: 10px; }</string>
              </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
@@ -136,7 +136,7 @@
            <item>
             <widget class="QFrame" name="frame_kpi_printers">
              <property name="styleSheet">
-              <string notr="true">QFrame { background-color: #fce4ec; border-radius: 10px; }</string>
+              <string notr="true">QFrame { background-color:rgb(137, 30, 66); border-radius: 10px; }</string>
              </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
@@ -185,7 +185,7 @@
            <item>
             <widget class="QFrame" name="frame_kpi_cctv">
              <property name="styleSheet">
-              <string notr="true">QFrame { background-color: #fff3e0; border-radius: 10px; }</string>
+              <string notr="true">QFrame { background-color:rgb(188, 137, 54); border-radius: 10px; }</string>
              </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
