@@ -3,6 +3,7 @@ __pycache__
 build
 dist
 .venv
+inventario.db
 
 # Ignora archivos de entorno (variables de entorno)
 .env
