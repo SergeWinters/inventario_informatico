@@ -1,1 +1,1 @@
-pyinstaller --onefile --windowed --add-data "logo.png;." --add-data "ui_inventario.ui;." main.py
+pyinstaller --onefile --windowed --add-data "logo.png;." --add-data "ui_inventario.ui;." --add-data "ui_login.ui;." main.py

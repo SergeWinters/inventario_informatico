@@ -6,50 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>957</width>
-    <height>788</height>
+    <width>1024</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Sistema de Inventario Tecnológico</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>logo.png</normaloff>logo.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Seleccionar Inventario:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="combo_inventarios">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btn_nuevo_inventario">
-        <property name="text">
-         <string>Nuevo Inventario</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btn_eliminar_inventario">
-        <property name="text">
-         <string>Eliminar Inventario</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
     <item>
      <widget class="QTabWidget" name="tabs_main">
       <property name="currentIndex">
@@ -153,7 +122,7 @@
         <item row="6" column="0">
          <widget class="QLabel" name="label_9">
           <property name="text">
-           <string>Modo de Trabajo de la Academia</string>
+           <string>Modo de Trabajo</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -211,7 +180,7 @@
         <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
-           <string>Añadir Nuevo PC</string>
+           <string>Añadir / Editar PC</string>
           </property>
           <layout class="QGridLayout" name="gridLayout">
            <item row="0" column="0">
@@ -285,37 +254,61 @@
             <widget class="QLineEdit" name="input_pc_fuente"/>
            </item>
            <item row="2" column="2">
+            <widget class="QLabel" name="label_41">
+             <property name="text">
+              <string>Antivirus:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QLineEdit" name="input_pc_antivirus"/>
+           </item>
+           <item row="2" column="4">
             <widget class="QLabel" name="label_17">
              <property name="text">
               <string>Ubicación:</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="3">
+           <item row="2" column="5">
             <widget class="QLineEdit" name="input_pc_ubicacion"/>
            </item>
-           <item row="2" column="4">
+           <item row="3" column="0">
             <widget class="QLabel" name="label_18">
              <property name="text">
               <string>Observaciones:</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="5">
+           <item row="3" column="1" colspan="5">
             <widget class="QLineEdit" name="input_pc_obs"/>
            </item>
-           <item row="3" column="5">
-            <widget class="QPushButton" name="btn_add_pc">
-             <property name="text">
-              <string>Añadir (+)</string>
-             </property>
-            </widget>
+           <item row="4" column="0" colspan="6">
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <item>
+              <widget class="QPushButton" name="btn_save_pc">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_pc">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QTableWidget" name="table_pcs">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
           </attribute>
@@ -361,6 +354,11 @@
           </column>
           <column>
            <property name="text">
+            <string>Antivirus</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
             <string>Ubicación</string>
            </property>
           </column>
@@ -388,61 +386,96 @@
         <item>
          <widget class="QGroupBox" name="groupBox_2">
           <property name="title">
-           <string>Añadir Proyector/Pantalla</string>
+           <string>Añadir / Editar Proyector/Pantalla</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <item>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="0">
             <widget class="QLabel" name="label_19">
              <property name="text">
               <string>Código:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="1">
             <widget class="QLineEdit" name="input_proy_codigo"/>
            </item>
-           <item>
+           <item row="0" column="2">
             <widget class="QLabel" name="label_20">
              <property name="text">
               <string>Modelo:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="3">
             <widget class="QLineEdit" name="input_proy_modelo"/>
            </item>
-           <item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_42">
+             <property name="text">
+              <string>Táctil:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="combo_proy_tactil">
+             <item>
+              <property name="text">
+               <string>No</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Sí</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="2">
             <widget class="QLabel" name="label_21">
              <property name="text">
               <string>Ubicación:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="1" column="3">
             <widget class="QLineEdit" name="input_proy_ubicacion"/>
            </item>
-           <item>
+           <item row="2" column="0">
             <widget class="QLabel" name="label_30">
              <property name="text">
-              <string>Obs:</string>
+              <string>Observaciones:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="2" column="1" colspan="3">
             <widget class="QLineEdit" name="input_proy_obs"/>
            </item>
-           <item>
-            <widget class="QPushButton" name="btn_add_proyector">
-             <property name="text">
-              <string>Añadir (+)</string>
-             </property>
-            </widget>
+           <item row="3" column="0" colspan="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <item>
+              <widget class="QPushButton" name="btn_save_proyector">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_proyector">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QTableWidget" name="table_proyectores">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
           </attribute>
@@ -459,6 +492,11 @@
           <column>
            <property name="text">
             <string>Modelo</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Táctil</string>
            </property>
           </column>
           <column>
@@ -490,61 +528,101 @@
         <item>
          <widget class="QGroupBox" name="groupBox_3">
           <property name="title">
-           <string>Añadir Impresora</string>
+           <string>Añadir / Editar Impresora</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <item>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="0" column="0">
             <widget class="QLabel" name="label_22">
              <property name="text">
               <string>Código:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="1">
             <widget class="QLineEdit" name="input_imp_codigo"/>
            </item>
-           <item>
+           <item row="0" column="2">
             <widget class="QLabel" name="label_23">
              <property name="text">
               <string>Modelo/Placa:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="3">
             <widget class="QLineEdit" name="input_imp_modelo"/>
            </item>
-           <item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_43">
+             <property name="text">
+              <string>Conexión:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="combo_imp_conexion">
+             <item>
+              <property name="text">
+               <string>USB</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>LAN</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>WiFi</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="2">
             <widget class="QLabel" name="label_24">
              <property name="text">
               <string>Ubicación:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="1" column="3">
             <widget class="QLineEdit" name="input_imp_ubicacion"/>
            </item>
-           <item>
+           <item row="2" column="0">
             <widget class="QLabel" name="label_31">
              <property name="text">
-              <string>Obs:</string>
+              <string>Observaciones:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="2" column="1" colspan="3">
             <widget class="QLineEdit" name="input_imp_obs"/>
            </item>
-           <item>
-            <widget class="QPushButton" name="btn_add_impresora">
-             <property name="text">
-              <string>Añadir (+)</string>
-             </property>
-            </widget>
+           <item row="3" column="0" colspan="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <item>
+              <widget class="QPushButton" name="btn_save_impresora">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_impresora">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QTableWidget" name="table_impresoras">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
           </attribute>
@@ -561,6 +639,11 @@
           <column>
            <property name="text">
             <string>Modelo</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Conexión</string>
            </property>
           </column>
           <column>
@@ -592,71 +675,85 @@
         <item>
          <widget class="QGroupBox" name="groupBox_4">
           <property name="title">
-           <string>Servidores (NAS, Servidor de Ficheros, etc)</string>
+           <string>Servidores</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
-           <item>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="0" column="0">
             <widget class="QLabel" name="label_25">
              <property name="text">
               <string>Código:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="1">
             <widget class="QLineEdit" name="input_srv_codigo"/>
            </item>
-           <item>
+           <item row="0" column="2">
             <widget class="QLabel" name="label_26">
              <property name="text">
               <string>Modelo / Características:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="3">
             <widget class="QLineEdit" name="input_srv_modelo"/>
            </item>
-           <item>
+           <item row="1" column="0">
             <widget class="QLabel" name="label_27">
              <property name="text">
               <string>Uso:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="1" column="1">
             <widget class="QLineEdit" name="input_srv_uso"/>
            </item>
-           <item>
+           <item row="1" column="2">
             <widget class="QLabel" name="label_28">
              <property name="text">
               <string>Ubicación:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="1" column="3">
             <widget class="QLineEdit" name="input_srv_ubicacion"/>
            </item>
-           <item>
+           <item row="2" column="0">
             <widget class="QLabel" name="label_32">
              <property name="text">
               <string>Obs:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="2" column="1" colspan="3">
             <widget class="QLineEdit" name="input_srv_obs"/>
            </item>
-           <item>
-            <widget class="QPushButton" name="btn_add_servidor">
-             <property name="text">
-              <string>Añadir (+)</string>
-             </property>
-            </widget>
+           <item row="3" column="0" colspan="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_11">
+             <item>
+              <widget class="QPushButton" name="btn_save_servidor">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_servidor">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QTableWidget" name="table_servidores">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
           </attribute>
@@ -709,27 +806,27 @@
         <item>
          <widget class="QGroupBox" name="groupBox_5">
           <property name="title">
-           <string>Equipos de Red (Router, Switch, Puntos WiFi)</string>
+           <string>Equipos de Red (Router, Switch, Puntos WiFi, NAS)</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
-           <item>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="0" column="0">
             <widget class="QLabel" name="label_33">
              <property name="text">
               <string>Código:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="1">
             <widget class="QLineEdit" name="input_red_codigo"/>
            </item>
-           <item>
+           <item row="0" column="2">
             <widget class="QLabel" name="label_34">
              <property name="text">
               <string>Tipo:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="3">
             <widget class="QComboBox" name="combo_red_tipo">
              <item>
               <property name="text">
@@ -748,53 +845,72 @@
              </item>
              <item>
               <property name="text">
+               <string>NAS</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>Otro</string>
               </property>
              </item>
             </widget>
            </item>
-           <item>
+           <item row="1" column="0">
             <widget class="QLabel" name="label_35">
              <property name="text">
               <string>Modelo:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="1" column="1">
             <widget class="QLineEdit" name="input_red_modelo"/>
            </item>
-           <item>
+           <item row="1" column="2">
             <widget class="QLabel" name="label_36">
              <property name="text">
               <string>Ubicación:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="1" column="3">
             <widget class="QLineEdit" name="input_red_ubicacion"/>
            </item>
-           <item>
+           <item row="2" column="0">
             <widget class="QLabel" name="label_37">
              <property name="text">
               <string>Obs:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="2" column="1" colspan="3">
             <widget class="QLineEdit" name="input_red_obs"/>
            </item>
-           <item>
-            <widget class="QPushButton" name="btn_add_red">
-             <property name="text">
-              <string>Añadir (+)</string>
-             </property>
-            </widget>
+           <item row="3" column="0" colspan="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_12">
+             <item>
+              <widget class="QPushButton" name="btn_save_red">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_red">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QTableWidget" name="table_red">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
           </attribute>
@@ -839,9 +955,423 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_cctv">
+       <attribute name="title">
+        <string>CCTV</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_8">
+        <item>
+         <widget class="QGroupBox" name="groupBox_8">
+          <property name="title">
+           <string>Grabadores (DVR/NVR)</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_44">
+             <property name="text">
+              <string>Marca:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="input_cctv_rec_marca"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_45">
+             <property name="text">
+              <string>Modelo:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QLineEdit" name="input_cctv_rec_modelo"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_46">
+             <property name="text">
+              <string>Nº Canales:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="input_cctv_rec_canales"/>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="label_47">
+             <property name="text">
+              <string>Ubicación:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QLineEdit" name="input_cctv_rec_ubicacion"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_48">
+             <property name="text">
+              <string>Observaciones:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1" colspan="3">
+            <widget class="QLineEdit" name="input_cctv_rec_obs"/>
+           </item>
+           <item row="3" column="0" colspan="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_13">
+             <item>
+              <widget class="QPushButton" name="btn_save_cctv_recorder">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_cctv_recorder">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="table_cctv_recorders">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Marca</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Modelo</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Canales</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Ubicación</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Obs.</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_del_cctv_recorder">
+          <property name="text">
+           <string>Eliminar Grabador seleccionado (-)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="line_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_9">
+          <property name="title">
+           <string>Cámaras</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_8">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_49">
+             <property name="text">
+              <string>Marca:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="input_cctv_cam_marca"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_50">
+             <property name="text">
+              <string>Modelo:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QLineEdit" name="input_cctv_cam_modelo"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_51">
+             <property name="text">
+              <string>Tipo de Lente:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="input_cctv_cam_lente"/>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="label_52">
+             <property name="text">
+              <string>Ubicación:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QLineEdit" name="input_cctv_cam_ubicacion"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_53">
+             <property name="text">
+              <string>Observaciones:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1" colspan="3">
+            <widget class="QLineEdit" name="input_cctv_cam_obs"/>
+           </item>
+           <item row="3" column="0" colspan="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_14">
+             <item>
+              <widget class="QPushButton" name="btn_save_cctv_camera">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_cctv_camera">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="table_cctv_cameras">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Marca</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Modelo</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Lente</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Ubicación</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Obs.</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_del_cctv_camera">
+          <property name="text">
+           <string>Eliminar Cámara seleccionada (-)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_accesos">
+       <attribute name="title">
+        <string>Control de Acceso</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_9">
+        <item>
+         <widget class="QGroupBox" name="groupBox_10">
+          <property name="title">
+           <string>Añadir / Editar Dispositivo de Acceso</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_9">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_54">
+             <property name="text">
+              <string>Marca:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="input_acceso_marca"/>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_55">
+             <property name="text">
+              <string>Modelo:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QLineEdit" name="input_acceso_modelo"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_56">
+             <property name="text">
+              <string>Tipo:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="combo_acceso_tipo">
+             <item>
+              <property name="text">
+               <string>Biométrico</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Tarjeta RFID</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Contraseña</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Mixto</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="label_57">
+             <property name="text">
+              <string>Ubicación:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QLineEdit" name="input_acceso_ubicacion"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_58">
+             <property name="text">
+              <string>Observaciones:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1" colspan="3">
+            <widget class="QLineEdit" name="input_acceso_obs"/>
+           </item>
+           <item row="3" column="0" colspan="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_15">
+             <item>
+              <widget class="QPushButton" name="btn_save_acceso">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_acceso">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="table_accesos">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Marca</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Modelo</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Tipo</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Ubicación</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Obs.</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_del_acceso">
+          <property name="text">
+           <string>Eliminar Dispositivo seleccionado (-)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="tab_extras">
        <attribute name="title">
-        <string>Software y Equipos Extra</string>
+        <string>Software y Extras</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
@@ -849,39 +1379,53 @@
           <property name="title">
            <string>Licencias de Software (Office, Antivirus, etc.)</string>
           </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
-           <item>
+          <layout class="QGridLayout" name="gridLayout_10">
+           <item row="0" column="0">
             <widget class="QLabel" name="label_38">
              <property name="text">
               <string>Nombre del Software:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="1">
             <widget class="QLineEdit" name="input_sw_nombre"/>
            </item>
-           <item>
+           <item row="0" column="2">
             <widget class="QLabel" name="label_39">
              <property name="text">
               <string>Licencia / Versión:</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="0" column="3">
             <widget class="QLineEdit" name="input_sw_licencia"/>
            </item>
-           <item>
-            <widget class="QPushButton" name="btn_add_software">
-             <property name="text">
-              <string>Añadir (+)</string>
-             </property>
-            </widget>
+           <item row="1" column="0" colspan="4">
+            <layout class="QHBoxLayout" name="horizontalLayout_16">
+             <item>
+              <widget class="QPushButton" name="btn_save_software">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_software">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
         </item>
         <item>
          <widget class="QTableWidget" name="table_software">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
           <attribute name="horizontalHeaderStretchLastSection">
            <bool>true</bool>
           </attribute>
@@ -919,13 +1463,137 @@
         <item>
          <widget class="QGroupBox" name="groupBox_7">
           <property name="title">
-           <string>Equipos Extra (Videovigilancia, Control de Acceso, etc.)</string>
+           <string>Equipos Extra (No catalogados en otras secciones)</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_7">
            <item>
             <widget class="QPlainTextEdit" name="text_equipos_extra"/>
            </item>
           </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_credenciales">
+       <attribute name="title">
+        <string>Credenciales</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_10">
+        <item>
+         <widget class="QGroupBox" name="groupBox_11">
+          <property name="title">
+           <string>Añadir / Editar Credencial (¡Manejar con cuidado!)</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_11">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_59">
+             <property name="text">
+              <string>Elemento:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="input_cred_elemento">
+             <property name="placeholderText">
+              <string>Ej: Router Principal, BIOS PC-01, WiFi Invitados</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_60">
+             <property name="text">
+              <string>Usuario:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="input_cred_usuario"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_61">
+             <property name="text">
+              <string>Contraseña:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="input_cred_clave">
+             <property name="echoMode">
+              <enum>QLineEdit::Password</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_62">
+             <property name="text">
+              <string>Notas:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="input_cred_notas"/>
+           </item>
+           <item row="4" column="0" colspan="2">
+            <layout class="QHBoxLayout" name="horizontalLayout_17">
+             <item>
+              <widget class="QPushButton" name="btn_save_credencial">
+               <property name="text">
+                <string>Guardar (Añadir/Actualizar)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_clear_credencial">
+               <property name="text">
+                <string>Limpiar Campos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="table_credenciales">
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Elemento</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Usuario</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Contraseña</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Notas</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_del_credencial">
+          <property name="text">
+           <string>Eliminar Credencial seleccionada (-)</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -953,7 +1621,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>957</width>
+     <width>1024</width>
      <height>21</height>
     </rect>
    </property>

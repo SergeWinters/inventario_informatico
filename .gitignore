@@ -1,0 +1,36 @@
+# Ignora la carpeta node_modules (dependencias de Node.js)
+__pycache__
+build
+dist
+
+# Ignora archivos de entorno (variables de entorno)
+.env
+.env.local
+.env.*.local
+
+# Ignora logs y directorios de debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignora carpetas de desarrollo y builds
+dist/
+build/
+.out/
+.next/
+
+# Ignora archivos de configuración local
+*.local
+
+# Ignora archivos de IDE (VS Code, WebStorm, etc.)
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignora archivos de sistema (macOS)
+.DS_Store
+
+# Ignora archivos de npm/yarn
+package-lock.json
+yarn.lock

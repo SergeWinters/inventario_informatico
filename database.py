@@ -12,7 +12,7 @@ class DatabaseManager:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS inventarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                cliente TEXT,
+                cliente TEXT UNIQUE,
                 ubicacion TEXT,
                 responsable TEXT,
                 fecha TEXT,
@@ -25,40 +25,34 @@ class DatabaseManager:
             )
         ''')
 
-        # Tablas para los diferentes tipos de equipos, relacionadas con un inventario
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS pcs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                inventario_id INTEGER,
-                codigo TEXT, placa TEXT, ram TEXT, core TEXT,
-                disco TEXT, so TEXT, fuente TEXT, ubicacion_equipo TEXT,
-                observaciones TEXT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
+                codigo TEXT, placa TEXT, ram TEXT, core TEXT, disco TEXT, so TEXT,
+                fuente TEXT, antivirus TEXT, ubicacion_equipo TEXT, observaciones TEXT,
                 FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
             )
         ''')
         
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS proyectores (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                inventario_id INTEGER,
-                codigo TEXT, modelo TEXT, ubicacion_equipo TEXT, observaciones TEXT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
+                codigo TEXT, modelo TEXT, tactil TEXT, ubicacion_equipo TEXT, observaciones TEXT,
                 FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
             )
         ''')
         
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS impresoras (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                inventario_id INTEGER,
-                codigo TEXT, modelo TEXT, ubicacion_equipo TEXT, observaciones TEXT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
+                codigo TEXT, modelo TEXT, conexion TEXT, ubicacion_equipo TEXT, observaciones TEXT,
                 FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
             )
         ''')
 
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS servidores (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                inventario_id INTEGER,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
                 codigo TEXT, modelo TEXT, uso TEXT, ubicacion_equipo TEXT, observaciones TEXT,
                 FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
             )
@@ -66,8 +60,7 @@ class DatabaseManager:
         
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS red (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                inventario_id INTEGER,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
                 codigo TEXT, tipo TEXT, modelo TEXT, ubicacion_equipo TEXT, observaciones TEXT,
                 FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
             )
@@ -75,9 +68,41 @@ class DatabaseManager:
         
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS software (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                inventario_id INTEGER,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
                 nombre TEXT, licencia TEXT,
+                FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
+            )
+        ''')
+
+        # --- NUEVAS TABLAS ---
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cctv_recorders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
+                marca TEXT, modelo TEXT, canales TEXT, ubicacion TEXT, observaciones TEXT,
+                FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
+            )
+        ''')
+        
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cctv_cameras (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
+                marca TEXT, modelo TEXT, tipo_lente TEXT, ubicacion TEXT, observaciones TEXT,
+                FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
+            )
+        ''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS accesos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
+                marca TEXT, modelo TEXT, tipo TEXT, ubicacion TEXT, observaciones TEXT,
+                FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
+            )
+        ''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS credenciales (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
+                elemento TEXT, usuario TEXT, clave TEXT, notas TEXT,
                 FOREIGN KEY (inventario_id) REFERENCES inventarios (id) ON DELETE CASCADE
             )
         ''')
