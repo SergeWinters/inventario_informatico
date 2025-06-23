@@ -5,15 +5,20 @@ import sqlite3
 import shutil
 import subprocess
 from datetime import datetime
+from collections import Counter
+
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QTableWidgetItem, QMessageBox, 
                              QFileDialog, QDialog, QLabel, QFormLayout, QWidget,
-                             QListWidgetItem, QListWidget, QComboBox)
+                             QListWidgetItem, QListWidget, QComboBox, QDialogButtonBox, QPushButton,
+                             QGroupBox, QVBoxLayout)
 from PyQt6.uic import loadUi
 from PyQt6.QtCore import QDate, Qt, QSize
 from PyQt6.QtGui import QIcon, QAction, QPixmap
+
 from database import DatabaseManager
 from pdf_generator import generate_pdf
 from excel_generator import generate_excel
+from dashboard_widgets import BarChartWidget, PieChartWidget
 
 # --- Funciones Auxiliares para manejo de rutas ---
 
@@ -83,6 +88,55 @@ class LoginDialog(QDialog):
         except sqlite3.IntegrityError:
              QMessageBox.critical(self, "Error", "Ya existe un centro con ese nombre.")
 
+# --- Ventana de Conexiones ---
+class ConnectItemDialog(QDialog):
+    def __init__(self, parent_item_type, parent_item_id, db, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Conectar Artículo")
+        self.parent_item_type = parent_item_type
+        self.parent_item_id = parent_item_id
+        self.db = db
+        self.item_map = parent.main_window.item_map if hasattr(parent, 'main_window') else {}
+
+        layout = QFormLayout(self)
+        self.combo_child_type = QComboBox()
+        self.combo_child_item = QComboBox()
+        self.notes_input = QLineEdit()
+
+        self.combo_child_type.addItems([info['display_name'] for info in self.item_map.values()])
+
+        layout.addRow("Tipo de Artículo a conectar:", self.combo_child_type)
+        layout.addRow("Artículo específico:", self.combo_child_item)
+        layout.addRow("Notas de la conexión:", self.notes_input)
+        
+        self.button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        layout.addWidget(self.button_box)
+
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        self.combo_child_type.currentIndexChanged.connect(self.update_child_items)
+        self.update_child_items()
+
+    def update_child_items(self):
+        selected_display_name = self.combo_child_type.currentText()
+        child_type = next((name for name, info in self.item_map.items() if info['display_name'] == selected_display_name), None)
+        
+        self.combo_child_item.clear()
+        if child_type:
+            items = self.db.fetch_all(f"SELECT id, codigo FROM {child_type} WHERE id != ? AND inventario_id = (SELECT inventario_id FROM {self.parent_item_type} WHERE id = ?)", (self.parent_item_id, self.parent_item_id))
+            for item_id, item_code in items:
+                self.combo_child_item.addItem(f"{item_code} (ID: {item_id})", item_id)
+
+    def get_connection_data(self):
+        selected_display_name = self.combo_child_type.currentText()
+        child_type = next((name for name, info in self.item_map.items() if info['display_name'] == selected_display_name), None)
+        
+        return {
+            "child_item_type": child_type,
+            "child_item_id": self.combo_child_item.currentData(),
+            "notes": self.notes_input.text()
+        }
+
 # --- Ventana de Visor de Detalles ---
 class DetailViewDialog(QDialog):
     def __init__(self, item_type, item_id, db, parent=None):
@@ -96,8 +150,15 @@ class DetailViewDialog(QDialog):
         self.image_dir = get_writable_data_path(os.path.join('data', 'images'))
         os.makedirs(self.image_dir, exist_ok=True)
         
+        # Añadir un botón para conectar artículos
+        self.btn_connect_item = QPushButton("Conectar a otro Artículo")
+        self.btn_connect_item.clicked.connect(self.open_connect_dialog)
+        # Asumiendo que el layout se llama `horizontalLayout_2` en tu .ui
+        self.horizontalLayout_2.insertWidget(2, self.btn_connect_item)
+        
         self.populate_details()
         self.load_images()
+        self.load_connections()
 
         self.btn_close.clicked.connect(self.accept)
         self.btn_edit_item.clicked.connect(self.request_edit)
@@ -106,6 +167,16 @@ class DetailViewDialog(QDialog):
         self.btn_delete_image.clicked.connect(self.delete_image)
         self.image_list_widget.itemDoubleClicked.connect(self.view_image)
 
+    def open_connect_dialog(self):
+        dialog = ConnectItemDialog(self.item_type, self.item_id, self.db, self)
+        if dialog.exec():
+            data = dialog.get_connection_data()
+            if data['child_item_type'] and data['child_item_id']:
+                self.db.execute_query(
+                    "INSERT INTO connections (parent_item_type, parent_item_id, child_item_type, child_item_id, notes) VALUES (?, ?, ?, ?, ?)",
+                    (self.item_type, self.item_id, data['child_item_type'], data['child_item_id'], data['notes'])
+                )
+                self.load_connections() # Refrescar la lista de conexiones
     def populate_details(self):
         data = self.db.fetch_one(f"SELECT * FROM {self.item_type} WHERE id=?", (self.item_id,))
         if not data:
@@ -141,6 +212,52 @@ class DetailViewDialog(QDialog):
                 item = QListWidgetItem(icon, os.path.basename(full_path))
                 item.setData(Qt.ItemDataRole.UserRole, (img_id, full_path, relative_img_path))
                 self.image_list_widget.addItem(item)
+    
+    def load_connections(self):
+        # Primero, asegurar que el groupbox y el layout para conexiones existan
+        if not hasattr(self, 'connections_groupbox'):
+            self.connections_groupbox = QGroupBox("Artículos Conectados")
+            self.connections_layout = QVBoxLayout(self.connections_groupbox)
+            self.connections_list = QListWidget()
+            self.btn_delete_connection = QPushButton("Eliminar Conexión Seleccionada")
+            self.btn_delete_connection.clicked.connect(self.delete_connection)
+            self.connections_layout.addWidget(self.connections_list)
+            self.connections_layout.addWidget(self.btn_delete_connection)
+            # Insertar el groupbox en el layout principal del diálogo
+            self.verticalLayout.insertWidget(2, self.connections_groupbox)
+
+        self.connections_list.clear()
+        connections = self.db.fetch_all(
+            "SELECT id, child_item_type, child_item_id, notes FROM connections WHERE parent_item_type=? AND parent_item_id=?",
+            (self.item_type, self.item_id)
+        )
+        for conn_id, child_type, child_id, notes in connections:
+            child_info = self.main_window.item_map.get(child_type, {})
+            display_name = child_info.get('display_name', child_type)
+            child_data = self.db.fetch_one(f"SELECT codigo FROM {child_type} WHERE id=?", (child_id,))
+            child_code = child_data[0] if child_data else f"ID:{child_id}"
+            
+            text = f"[{display_name}] {child_code} - Notas: {notes or 'N/A'}"
+            item = QListWidgetItem(text)
+            item.setData(Qt.ItemDataRole.UserRole, conn_id) # Guardar el ID de la conexión
+            self.connections_list.addItem(item)
+            
+    def delete_connection(self):
+        selected_item = self.connections_list.currentItem()
+        if not selected_item:
+            QMessageBox.warning(self, "Selección Requerida", "Seleccione una conexión para eliminar.")
+            return
+
+        conn_id = selected_item.data(Qt.ItemDataRole.UserRole)
+        reply = QMessageBox.question(self, "Confirmar Eliminación", 
+                                     "¿Está seguro de que desea eliminar esta conexión?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                     QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
+            self.db.execute_query("DELETE FROM connections WHERE id=?", (conn_id,))
+            self.load_connections()
+
+
     def add_images(self):
         files, _ = QFileDialog.getOpenFileNames(self, "Seleccionar Imágenes", "", "Images (*.png *.jpg *.jpeg)")
         for file_path in files:
@@ -149,7 +266,7 @@ class DetailViewDialog(QDialog):
             
             try:
                 shutil.copy(file_path, destination_path)
-                relative_path_to_save = os.path.join('data', 'images', filename)
+                relative_path_to_save = os.path.join('data', 'images', filename).replace('\\', '/')
                 self.db.execute_query("INSERT INTO images (item_type, item_id, image_path) VALUES (?, ?, ?)", 
                                       (self.item_type, self.item_id, relative_path_to_save))
             except Exception as e:
@@ -199,7 +316,6 @@ class DetailViewDialog(QDialog):
     def request_delete(self):
         self.main_window.request_delete_from_viewer(self.item_type, self.item_id)
         self.accept()
-
 # --- Ventana de Búsqueda ---
 class SearchDialog(QDialog):
     def __init__(self, db, inventory_id, parent=None):
@@ -218,22 +334,9 @@ class SearchDialog(QDialog):
 
     def load_all_items(self):
         self.all_items = []
-        tables_to_search = {
-            'pcs': ['PCs', 'codigo', 'placa', 'ubicacion_equipo'],
-            'proyectores': ['Proyectores', 'codigo', 'modelo', 'ubicacion_equipo'],
-            'impresoras': ['Impresoras', 'codigo', 'modelo', 'ubicacion_equipo'],
-            'servidores': ['Servidores', 'codigo', 'modelo', 'uso'],
-            'red': ['Red', 'codigo', 'tipo', 'modelo', 'ubicacion_equipo'],
-            'cctv_recorders': ['Grabadores CCTV', 'marca', 'modelo', 'ubicacion'],
-            'cctv_cameras': ['Cámaras CCTV', 'marca', 'modelo', 'ubicacion'],
-            'accesos': ['Control de Acceso', 'marca', 'modelo', 'ubicacion'],
-            'software': ['Software', 'nombre', 'licencia'],
-            'credenciales': ['Credenciales', 'elemento', 'usuario'],
-        }
-
-        for table_name, fields in tables_to_search.items():
-            display_name = fields[0]
-            query_fields = ", ".join(fields[1:])
+        for table_name, info in self.main_window.item_map.items():
+            display_name = info['display_name']
+            query_fields = ", ".join(info['search_fields'])
             query = f"SELECT id, {query_fields} FROM {table_name} WHERE inventario_id=?"
             results = self.db.fetch_all(query, (self.inventory_id,))
             for row in results:
@@ -278,62 +381,36 @@ class MainWindow(QMainWindow):
         self.editing_item_id = None
         self.editing_item_type = None
 
+        self.item_map = {
+            'pcs': {'display_name': 'PCs', 'search_fields': ['codigo', 'placa', 'ubicacion_equipo']},
+            'proyectores': {'display_name': 'Proyectores', 'search_fields': ['codigo', 'modelo', 'ubicacion_equipo']},
+            'impresoras': {'display_name': 'Impresoras', 'search_fields': ['codigo', 'modelo', 'ubicacion_equipo']},
+            'servidores': {'display_name': 'Servidores', 'search_fields': ['codigo', 'modelo', 'uso']},
+            'red': {'display_name': 'Red', 'search_fields': ['codigo', 'tipo', 'modelo', 'ubicacion_equipo']},
+            'cctv_recorders': {'display_name': 'Grabadores CCTV', 'search_fields': ['marca', 'modelo', 'ubicacion']},
+            'cctv_cameras': {'display_name': 'Cámaras CCTV', 'search_fields': ['marca', 'modelo', 'ubicacion']},
+            'accesos': {'display_name': 'Control de Acceso', 'search_fields': ['marca', 'modelo', 'ubicacion']},
+            'software': {'display_name': 'Software', 'search_fields': ['nombre', 'licencia']},
+            'credenciales': {'display_name': 'Credenciales', 'search_fields': ['elemento', 'usuario']},
+        }
+        
         self.table_map = {
-            'pcs': {
-                'widget': self.table_pcs,
-                'headers': ['ID', 'Código', 'Placa', 'RAM', 'Core', 'Disco', 'S.O.', 'Fuente', 'Antivirus', 'Ubicación', 'Obs.'],
-                'db_cols': ['id', 'codigo', 'placa', 'ram', 'core', 'disco', 'so', 'fuente', 'antivirus', 'ubicacion_equipo', 'observaciones']
-            },
-            'proyectores': {
-                'widget': self.table_proyectores,
-                'headers': ['ID', 'Código', 'Modelo', 'Táctil', 'Ubicación', 'Obs.'],
-                'db_cols': ['id', 'codigo', 'modelo', 'tactil', 'ubicacion_equipo', 'observaciones']
-            },
-            'impresoras': {
-                'widget': self.table_impresoras,
-                'headers': ['ID', 'Código', 'Modelo', 'Conexión', 'Ubicación', 'Obs.'],
-                'db_cols': ['id', 'codigo', 'modelo', 'conexion', 'ubicacion_equipo', 'observaciones']
-            },
-            'servidores': {
-                'widget': self.table_servidores,
-                'headers': ['ID', 'Código', 'Modelo', 'Uso', 'Ubicación', 'Obs.'],
-                'db_cols': ['id', 'codigo', 'modelo', 'uso', 'ubicacion_equipo', 'observaciones']
-            },
-            'red': {
-                'widget': self.table_red,
-                'headers': ['ID', 'Código', 'Tipo', 'Modelo', 'Ubicación', 'Obs.'],
-                'db_cols': ['id', 'codigo', 'tipo', 'modelo', 'ubicacion_equipo', 'observaciones']
-            },
-            'cctv_recorders': {
-                'widget': self.table_cctv_recorders,
-                'headers': ['ID', 'Marca', 'Modelo', 'Canales', 'Ubicación', 'Obs.'],
-                'db_cols': ['id', 'marca', 'modelo', 'canales', 'ubicacion', 'observaciones']
-            },
-            'cctv_cameras': {
-                'widget': self.table_cctv_cameras,
-                'headers': ['ID', 'Marca', 'Modelo', 'Lente', 'Ubicación', 'Obs.'],
-                'db_cols': ['id', 'marca', 'modelo', 'tipo_lente', 'ubicacion', 'observaciones']
-            },
-            'accesos': {
-                'widget': self.table_accesos,
-                'headers': ['ID', 'Marca', 'Modelo', 'Tipo', 'Ubicación', 'Obs.'],
-                'db_cols': ['id', 'marca', 'modelo', 'tipo', 'ubicacion', 'observaciones']
-            },
-            'software': {
-                'widget': self.table_software,
-                'headers': ['ID', 'Software', 'Licencia'],
-                'db_cols': ['id', 'nombre', 'licencia']
-            },
-            'credenciales': {
-                'widget': self.table_credenciales,
-                'headers': ['ID', 'Elemento', 'Usuario', 'Contraseña', 'Notas'],
-                'db_cols': ['id', 'elemento', 'usuario', 'clave', 'notas']
-            }
+            'pcs': {'widget': self.table_pcs, 'headers': ['ID', 'Código', 'Placa', 'RAM', 'Core', 'Disco', 'S.O.', 'Fuente', 'Antivirus', 'Ubicación', 'Obs.'], 'db_cols': ['id', 'codigo', 'placa', 'ram', 'core', 'disco', 'so', 'fuente', 'antivirus', 'ubicacion_equipo', 'observaciones']},
+            'proyectores': {'widget': self.table_proyectores, 'headers': ['ID', 'Código', 'Modelo', 'Táctil', 'Ubicación', 'Obs.'], 'db_cols': ['id', 'codigo', 'modelo', 'tactil', 'ubicacion_equipo', 'observaciones']},
+            'impresoras': {'widget': self.table_impresoras, 'headers': ['ID', 'Código', 'Modelo', 'Conexión', 'Ubicación', 'Obs.'], 'db_cols': ['id', 'codigo', 'modelo', 'conexion', 'ubicacion_equipo', 'observaciones']},
+            'servidores': {'widget': self.table_servidores, 'headers': ['ID', 'Código', 'Modelo', 'Uso', 'Ubicación', 'Obs.'], 'db_cols': ['id', 'codigo', 'modelo', 'uso', 'ubicacion_equipo', 'observaciones']},
+            'red': {'widget': self.table_red, 'headers': ['ID', 'Código', 'Tipo', 'Modelo', 'Ubicación', 'Obs.'], 'db_cols': ['id', 'codigo', 'tipo', 'modelo', 'ubicacion_equipo', 'observaciones']},
+            'cctv_recorders': {'widget': self.table_cctv_recorders, 'headers': ['ID', 'Marca', 'Modelo', 'Canales', 'Ubicación', 'Obs.'], 'db_cols': ['id', 'marca', 'modelo', 'canales', 'ubicacion', 'observaciones']},
+            'cctv_cameras': {'widget': self.table_cctv_cameras, 'headers': ['ID', 'Marca', 'Modelo', 'Lente', 'Ubicación', 'Obs.'], 'db_cols': ['id', 'marca', 'modelo', 'tipo_lente', 'ubicacion', 'observaciones']},
+            'accesos': {'widget': self.table_accesos, 'headers': ['ID', 'Marca', 'Modelo', 'Tipo', 'Ubicación', 'Obs.'], 'db_cols': ['id', 'marca', 'modelo', 'tipo', 'ubicacion', 'observaciones']},
+            'software': {'widget': self.table_software, 'headers': ['ID', 'Software', 'Licencia'], 'db_cols': ['id', 'nombre', 'licencia']},
+            'credenciales': {'widget': self.table_credenciales, 'headers': ['ID', 'Elemento', 'Usuario', 'Contraseña', 'Notas'], 'db_cols': ['id', 'elemento', 'usuario', 'clave', 'notas']}
         }
 
         self.setup_ui()
         self.connect_signals()
         self.load_selected_inventory()
+
     def setup_ui(self):
         for table_name in self.table_map:
             widget = self.table_map[table_name]['widget']
@@ -342,6 +419,12 @@ class MainWindow(QMainWindow):
         
         self.statusbar.addPermanentWidget(QLabel("Hecho por ForgeNEX (www.forgenex.com)"))
         
+        # --- Dashboard Widgets ---
+        self.bar_chart = BarChartWidget()
+        self.pie_chart = PieChartWidget()
+        self.bar_chart_layout.addWidget(self.bar_chart)
+        self.pie_chart_layout.addWidget(self.pie_chart)
+
         menu_bar = self.menuBar()
         file_menu = menu_bar.addMenu("&Archivo")
         
@@ -359,13 +442,17 @@ class MainWindow(QMainWindow):
         self.close()
 
     def connect_signals(self):
+        # Dashboard
+        self.btn_refresh_dashboard.clicked.connect(self.update_dashboard)
+        self.combo_dashboard_locations.currentIndexChanged.connect(self.update_dashboard_location_list)
+        self.list_dashboard_location_items.itemDoubleClicked.connect(self.open_detail_from_dashboard)
+
         # Botones Globales
         self.btn_search.clicked.connect(self.open_search_dialog)
         self.btn_guardar_todo.clicked.connect(self.save_all_data)
         self.btn_exportar_excel.clicked.connect(self.export_to_excel)
         self.btn_exportar_pdf.clicked.connect(self.export_to_pdf)
         self.btn_select_plano.clicked.connect(self.select_plano)
-
         # Conexiones para GUARDAR (añadir/actualizar)
         self.btn_save_pc.clicked.connect(self.save_pc)
         self.btn_save_proyector.clicked.connect(self.save_proyector)
@@ -414,11 +501,11 @@ class MainWindow(QMainWindow):
         self.editing_item_id = item_id
 
         edit_map = {
-            'pcs': (self.edit_pc, 1), 'proyectores': (self.edit_proyector, 2),
-            'impresoras': (self.edit_impresora, 3), 'servidores': (self.edit_servidor, 4),
-            'red': (self.edit_red, 4), 'cctv_recorders': (self.edit_recorder, 5),
-            'cctv_cameras': (self.edit_camera, 5), 'accesos': (self.edit_acceso, 6),
-            'software': (self.edit_software, 7), 'credenciales': (self.edit_credencial, 8)
+            'pcs': (self.edit_pc, 2), 'proyectores': (self.edit_proyector, 3),
+            'impresoras': (self.edit_impresora, 4), 'servidores': (self.edit_servidor, 5),
+            'red': (self.edit_red, 5), 'cctv_recorders': (self.edit_recorder, 6),
+            'cctv_cameras': (self.edit_camera, 6), 'accesos': (self.edit_acceso, 7),
+            'software': (self.edit_software, 8), 'credenciales': (self.edit_credencial, 9)
         }
         
         if item_type in edit_map:
@@ -452,7 +539,79 @@ class MainWindow(QMainWindow):
             
             self.populate_all_comboboxes()
             self.refresh_all_tables()
+            self.update_dashboard()
 
+    def update_dashboard(self):
+        # KPIs
+        pcs_count = self.db.fetch_one(f"SELECT COUNT(id) FROM pcs WHERE inventario_id=?", (self.current_inventory_id,))[0]
+        network_count = self.db.fetch_one(f"SELECT COUNT(id) FROM red WHERE inventario_id=?", (self.current_inventory_id,))[0]
+        printers_count = self.db.fetch_one(f"SELECT COUNT(id) FROM impresoras WHERE inventario_id=?", (self.current_inventory_id,))[0]
+        cctv_count = self.db.fetch_one(f"SELECT COUNT(id) FROM cctv_recorders WHERE inventario_id=?", (self.current_inventory_id,))[0] + \
+                     self.db.fetch_one(f"SELECT COUNT(id) FROM cctv_cameras WHERE inventario_id=?", (self.current_inventory_id,))[0]
+        
+        self.label_kpi_pcs_value.setText(str(pcs_count))
+        self.label_kpi_network_value.setText(str(network_count))
+        self.label_kpi_printers_value.setText(str(printers_count))
+        self.label_kpi_cctv_value.setText(str(cctv_count))
+        
+        # Bar Chart
+        bar_labels = ['PCs', 'Proyectores', 'Impresoras', 'Servidores', 'Red', 'Cámaras']
+        bar_values = [
+            pcs_count,
+            self.db.fetch_one(f"SELECT COUNT(id) FROM proyectores WHERE inventario_id=?", (self.current_inventory_id,))[0],
+            printers_count,
+            self.db.fetch_one(f"SELECT COUNT(id) FROM servidores WHERE inventario_id=?", (self.current_inventory_id,))[0],
+            network_count,
+            self.db.fetch_one(f"SELECT COUNT(id) FROM cctv_cameras WHERE inventario_id=?", (self.current_inventory_id,))[0]
+        ]
+        self.bar_chart.update_chart(bar_labels, bar_values)
+
+        # Pie Chart
+        os_data = self.db.fetch_all(f"SELECT so FROM pcs WHERE inventario_id=?", (self.current_inventory_id,))
+        os_counts = Counter([row[0] for row in os_data if row[0]])
+        pie_labels = list(os_counts.keys())
+        pie_values = list(os_counts.values())
+        self.pie_chart.update_chart(pie_labels, pie_values)
+        
+        # Location ComboBox
+        all_locations = set()
+        for table in self.item_map.keys():
+            if 'ubicacion_equipo' in [c[1] for c in self.db.execute_query(f"PRAGMA table_info({table})")]:
+                locations = self.db.fetch_all(f"SELECT DISTINCT ubicacion_equipo FROM {table} WHERE inventario_id=? AND ubicacion_equipo IS NOT NULL AND ubicacion_equipo != ''", (self.current_inventory_id,))
+                all_locations.update([loc[0] for loc in locations])
+            elif 'ubicacion' in [c[1] for c in self.db.execute_query(f"PRAGMA table_info({table})")]:
+                 locations = self.db.fetch_all(f"SELECT DISTINCT ubicacion FROM {table} WHERE inventario_id=? AND ubicacion IS NOT NULL AND ubicacion != ''", (self.current_inventory_id,))
+                 all_locations.update([loc[0] for loc in locations])
+
+        self.combo_dashboard_locations.blockSignals(True)
+        self.combo_dashboard_locations.clear()
+        self.combo_dashboard_locations.addItem("Todas las Ubicaciones")
+        self.combo_dashboard_locations.addItems(sorted(list(all_locations)))
+        self.combo_dashboard_locations.blockSignals(False)
+        self.update_dashboard_location_list()
+
+    def update_dashboard_location_list(self):
+        location = self.combo_dashboard_locations.currentText()
+        self.list_dashboard_location_items.clear()
+        
+        for table_name, info in self.item_map.items():
+            loc_field = 'ubicacion_equipo' if 'ubicacion_equipo' in [c[1] for c in self.db.execute_query(f"PRAGMA table_info({table_name})")] else 'ubicacion'
+            if 'ubicacion' in [c[1] for c in self.db.execute_query(f"PRAGMA table_info({table_name})")] or 'ubicacion_equipo' in [c[1] for c in self.db.execute_query(f"PRAGMA table_info({table_name})")]:
+                query = f"SELECT id, codigo FROM {table_name} WHERE inventario_id=?"
+                params = [self.current_inventory_id]
+                if location != "Todas las Ubicaciones":
+                    query += f" AND {loc_field} = ?"
+                    params.append(location)
+
+                items = self.db.fetch_all(query, tuple(params))
+                for item_id, item_code in items:
+                    list_item = QListWidgetItem(f"[{info['display_name']}] {item_code}")
+                    list_item.setData(Qt.ItemDataRole.UserRole, (table_name, item_id))
+                    self.list_dashboard_location_items.addItem(list_item)
+                    
+    def open_detail_from_dashboard(self, item):
+        table_name, item_id = item.data(Qt.ItemDataRole.UserRole)
+        self.open_detail_view(table_name, item_id)
     def populate_combobox(self, combo_box, table, column):
         combo_box.blockSignals(True)
         current_text = combo_box.currentText()
@@ -484,6 +643,7 @@ class MainWindow(QMainWindow):
         self.populate_combobox(self.combo_acceso_marca, 'accesos', 'marca')
         self.populate_combobox(self.combo_acceso_modelo, 'accesos', 'modelo')
         self.populate_combobox(self.combo_sw_nombre, 'software', 'nombre')
+
     def save_all_data(self):
         data = (
             self.input_cliente.text(), self.input_ubicacion.text(), self.input_responsable.text(),
@@ -509,7 +669,6 @@ class MainWindow(QMainWindow):
             self.refresh_table(table_name)
 
     def refresh_table(self, table_name):
-        # CORRECCIÓN: Lógica de refresco robusta y explícita
         if table_name not in self.table_map:
             return
             
@@ -522,7 +681,6 @@ class MainWindow(QMainWindow):
         table_widget.setColumnCount(len(headers))
         table_widget.setHorizontalHeaderLabels(headers)
         
-        # Construir la query pidiendo las columnas en el orden correcto
         query = f"SELECT {', '.join(db_cols)} FROM {table_name} WHERE inventario_id=?"
         data = self.db.fetch_all(query, (self.current_inventory_id,))
         
@@ -533,11 +691,11 @@ class MainWindow(QMainWindow):
                 table_widget.setItem(row_num, col_num, item)
                 
         table_widget.resizeColumnsToContents()
-        table_widget.setColumnHidden(0, True) # Ocultar la columna ID
+        table_widget.setColumnHidden(0, True)
 
     def delete_item(self, table_name, item_id, table_widget, clear_func):
         reply = QMessageBox.question(self, 'Confirmar eliminación', 
-                                     "¿Está seguro de que desea eliminar este elemento y todas sus imágenes asociadas?",
+                                     "¿Está seguro de que desea eliminar este elemento y todas sus imágenes y conexiones asociadas?",
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
         
         if reply == QMessageBox.StandardButton.Yes:
@@ -551,10 +709,14 @@ class MainWindow(QMainWindow):
                     print(f"No se pudo borrar el archivo de imagen {img_path}: {e}")
             self.db.execute_query("DELETE FROM images WHERE item_type=? AND item_id=?", (table_name, item_id))
             
+            self.db.execute_query("DELETE FROM connections WHERE (parent_item_type=? AND parent_item_id=?) OR (child_item_type=? AND child_item_id=?)",
+                                  (table_name, item_id, table_name, item_id))
+
             self.db.execute_query(f"DELETE FROM {table_name} WHERE id=?", (item_id,))
             
             self.refresh_table(table_name)
             self.populate_all_comboboxes()
+            self.update_dashboard()
             clear_func()
             QMessageBox.information(self, "Éxito", "Elemento eliminado.")
 
@@ -569,12 +731,11 @@ class MainWindow(QMainWindow):
         
         self.refresh_table(item_type)
         self.populate_all_comboboxes()
+        self.update_dashboard()
         clear_func()
     
     def _get_combo_text(self, combo):
         return combo.currentText()
-
-    # --- Métodos de edición, limpieza y guardado para cada tipo de item ---
 
     # --- PCs ---
     def edit_pc(self, item_id):
@@ -604,7 +765,6 @@ class MainWindow(QMainWindow):
         insert_q = "INSERT INTO pcs (inventario_id, codigo, placa, ram, core, disco, so, fuente, antivirus, ubicacion_equipo, observaciones) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
         update_q = "UPDATE pcs SET codigo=?, placa=?, ram=?, core=?, disco=?, so=?, fuente=?, antivirus=?, ubicacion_equipo=?, observaciones=? WHERE id=?"
         self._save_item('pcs', data_tuple, insert_q, update_q)
-    
     # --- Proyectores ---
     def edit_proyector(self, item_id):
         data = self.db.fetch_one("SELECT * FROM proyectores WHERE id=?", (item_id,))
@@ -622,6 +782,7 @@ class MainWindow(QMainWindow):
         insert_q = "INSERT INTO proyectores (inventario_id, codigo, modelo, tactil, ubicacion_equipo, observaciones) VALUES (?,?,?,?,?,?)"
         update_q = "UPDATE proyectores SET codigo=?, modelo=?, tactil=?, ubicacion_equipo=?, observaciones=? WHERE id=?"
         self._save_item('proyectores', data_tuple, insert_q, update_q)
+    
     # --- Impresoras ---
     def edit_impresora(self, item_id):
         data = self.db.fetch_one("SELECT * FROM impresoras WHERE id=?", (item_id,))

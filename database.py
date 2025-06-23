@@ -24,7 +24,7 @@ class DatabaseManager:
                 plano_path TEXT
             )
         ''')
-
+        
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS pcs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, inventario_id INTEGER,
@@ -106,13 +106,24 @@ class DatabaseManager:
             )
         ''')
         
-        # --- NUEVA TABLA PARA IMÁGENES ---
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS images (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 item_type TEXT NOT NULL,
                 item_id INTEGER NOT NULL,
                 image_path TEXT NOT NULL
+            )
+        ''')
+
+        # --- NUEVA TABLA PARA CONEXIONES ---
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS connections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                parent_item_type TEXT NOT NULL,
+                parent_item_id INTEGER NOT NULL,
+                child_item_type TEXT NOT NULL,
+                child_item_id INTEGER NOT NULL,
+                notes TEXT
             )
         ''')
 

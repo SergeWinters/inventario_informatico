@@ -1,0 +1,6 @@
+PyQt6
+reportlab
+Pillow
+pandas
+openpyxl
+matplotlib
