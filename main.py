@@ -6,7 +6,7 @@ import shutil
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QTableWidgetItem, QMessageBox, 
                              QFileDialog, QDialog, QLabel, QFormLayout, QWidget,
-                             QListWidgetItem, QListWidget)
+                             QListWidgetItem, QListWidget, QComboBox) # QComboBox importado
 from PyQt6.uic import loadUi
 from PyQt6.QtCore import QDate, Qt, QSize
 from PyQt6.QtGui import QIcon, QAction, QPixmap
@@ -98,13 +98,12 @@ class DetailViewDialog(QDialog):
         cursor = self.db.execute_query(f"SELECT * FROM {self.item_type} WHERE id=?", (self.item_id,))
         headers = [desc[0] for desc in cursor.description]
         
-        # Limpiar layout anterior
         while self.info_layout.count():
             child = self.info_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
 
-        for header, value in zip(headers[2:], data[2:]): # Omitir id e inventario_id
+        for header, value in zip(headers[2:], data[2:]):
             label_header = QLabel(f"<b>{header.replace('_', ' ').title()}:</b>")
             label_value = QLabel(str(value))
             label_value.setWordWrap(True)
@@ -123,7 +122,7 @@ class DetailViewDialog(QDialog):
                 pixmap = QPixmap(full_path)
                 icon = QIcon(pixmap)
                 item = QListWidgetItem(icon, os.path.basename(img_path))
-                item.setData(Qt.ItemDataRole.UserRole, (img_id, full_path)) # Guardar id y path
+                item.setData(Qt.ItemDataRole.UserRole, (img_id, full_path))
                 self.image_list_widget.addItem(item)
 
     def add_images(self):
@@ -164,19 +163,20 @@ class DetailViewDialog(QDialog):
                 QMessageBox.information(self, "Éxito", "Imagen eliminada.")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar la imagen: {e}")
+
     def view_image(self, item):
         _, img_path = item.data(Qt.ItemDataRole.UserRole)
         try:
-            # os.startfile es solo para Windows, usamos una solución más portable
             if sys.platform == "win32":
                 os.startfile(img_path)
-            elif sys.platform == "darwin": # macOS
+            elif sys.platform == "darwin":
+                import subprocess
                 subprocess.call(["open", img_path])
-            else: # Linux
+            else:
+                import subprocess
                 subprocess.call(["xdg-open", img_path])
         except Exception as e:
              QMessageBox.critical(self, "Error", f"No se pudo abrir la imagen: {e}")
-
 
     def request_edit(self):
         self.main_window.prepare_to_edit(self.item_type, self.item_id)
@@ -185,7 +185,6 @@ class DetailViewDialog(QDialog):
     def request_delete(self):
         self.main_window.request_delete_from_viewer(self.item_type, self.item_id)
         self.accept()
-
 # --- Ventana de Búsqueda ---
 class SearchDialog(QDialog):
     def __init__(self, db, inventory_id, parent=None):
@@ -204,7 +203,6 @@ class SearchDialog(QDialog):
 
     def load_all_items(self):
         self.all_items = []
-        # Definir tablas y sus campos representativos
         tables_to_search = {
             'pcs': ['PCs', 'codigo', 'placa', 'ubicacion_equipo'],
             'proyectores': ['Proyectores', 'codigo', 'modelo', 'ubicacion_equipo'],
@@ -225,10 +223,8 @@ class SearchDialog(QDialog):
             results = self.db.fetch_all(query, (self.inventory_id,))
             for row in results:
                 item_id = row[0]
-                # Crear una cadena de texto representativa para la búsqueda
                 display_text = f"[{display_name}] " + " - ".join(map(str, row[1:]))
                 searchable_text = display_text.lower()
-                # Guardar el tipo de tabla, el id del item y el texto para buscar/mostrar
                 self.all_items.append((table_name, item_id, display_text, searchable_text))
         
         self.filter_results()
@@ -238,13 +234,11 @@ class SearchDialog(QDialog):
         self.results_list.clear()
         
         if not search_term:
-            # Si no hay término de búsqueda, mostrar todo
             for table_name, item_id, display_text, _ in self.all_items:
                 item = QListWidgetItem(display_text)
                 item.setData(Qt.ItemDataRole.UserRole, (table_name, item_id))
                 self.results_list.addItem(item)
         else:
-            # Filtrar resultados
             for table_name, item_id, display_text, searchable_text in self.all_items:
                 if search_term in searchable_text:
                     item = QListWidgetItem(display_text)
@@ -313,15 +307,14 @@ class MainWindow(QMainWindow):
         if self.app_instance:
             self.app_instance.should_switch_user = True
         self.close()
+
     def connect_signals(self):
-        # Botones Globales
         self.btn_search.clicked.connect(self.open_search_dialog)
         self.btn_guardar_todo.clicked.connect(self.save_all_data)
         self.btn_exportar_excel.clicked.connect(self.export_to_excel)
         self.btn_exportar_pdf.clicked.connect(self.export_to_pdf)
         self.btn_select_plano.clicked.connect(self.select_plano)
 
-        # Conexiones para GUARDAR (añadir/actualizar)
         self.btn_save_pc.clicked.connect(self.save_pc)
         self.btn_save_proyector.clicked.connect(self.save_proyector)
         self.btn_save_impresora.clicked.connect(self.save_impresora)
@@ -333,7 +326,6 @@ class MainWindow(QMainWindow):
         self.btn_save_software.clicked.connect(self.save_software)
         self.btn_save_credencial.clicked.connect(self.save_credencial)
 
-        # Conexiones para LIMPIAR CAMPOS
         self.btn_clear_pc.clicked.connect(self.clear_pcs_inputs)
         self.btn_clear_proyector.clicked.connect(self.clear_proyectores_inputs)
         self.btn_clear_impresora.clicked.connect(self.clear_impresoras_inputs)
@@ -345,7 +337,6 @@ class MainWindow(QMainWindow):
         self.btn_clear_software.clicked.connect(self.clear_software_inputs)
         self.btn_clear_credencial.clicked.connect(self.clear_credenciales_inputs)
         
-        # Conexiones de DOBLE CLIC para ver detalles
         self.table_pcs.cellDoubleClicked.connect(lambda row, col: self.open_detail_view_from_table('pcs', row))
         self.table_proyectores.cellDoubleClicked.connect(lambda row, col: self.open_detail_view_from_table('proyectores', row))
         self.table_impresoras.cellDoubleClicked.connect(lambda row, col: self.open_detail_view_from_table('impresoras', row))
@@ -375,23 +366,17 @@ class MainWindow(QMainWindow):
         self.editing_item_id = item_id
 
         edit_map = {
-            'pcs': (self.edit_pc, 1),
-            'proyectores': (self.edit_proyector, 2),
-            'impresoras': (self.edit_impresora, 3),
-            'servidores': (self.edit_servidor, 4),
-            'red': (self.edit_red, 4),
-            'cctv_recorders': (self.edit_recorder, 5),
-            'cctv_cameras': (self.edit_camera, 5),
-            'accesos': (self.edit_acceso, 6),
-            'software': (self.edit_software, 7),
-            'credenciales': (self.edit_credencial, 8)
+            'pcs': (self.edit_pc, 1), 'proyectores': (self.edit_proyector, 2),
+            'impresoras': (self.edit_impresora, 3), 'servidores': (self.edit_servidor, 4),
+            'red': (self.edit_red, 4), 'cctv_recorders': (self.edit_recorder, 5),
+            'cctv_cameras': (self.edit_camera, 5), 'accesos': (self.edit_acceso, 6),
+            'software': (self.edit_software, 7), 'credenciales': (self.edit_credencial, 8)
         }
         
         if item_type in edit_map:
             edit_function, tab_index = edit_map[item_type]
             self.tabs_main.setCurrentIndex(tab_index)
             edit_function(item_id)
-
     def request_delete_from_viewer(self, item_type, item_id):
         delete_map = {
             'pcs': (self.table_pcs, self.clear_pcs_inputs),
@@ -428,7 +413,40 @@ class MainWindow(QMainWindow):
             self.label_plano_path.setText(data[10] or "")
             self.setWindowTitle(f"Inventario - {data[1]}")
             
+            self.populate_all_comboboxes()
             self.refresh_all_tables()
+
+    def populate_combobox(self, combo_box, table, column):
+        combo_box.blockSignals(True)
+        current_text = combo_box.currentText()
+        combo_box.clear()
+        query = f"SELECT DISTINCT {column} FROM {table} WHERE {column} IS NOT NULL AND {column} != ''"
+        items = self.db.fetch_all(query)
+        unique_items = sorted(list(set([item[0] for item in items])))
+        combo_box.addItems(unique_items)
+        combo_box.setCurrentText(current_text)
+        combo_box.blockSignals(False)
+    
+    def populate_all_comboboxes(self):
+        self.populate_combobox(self.combo_pc_placa, 'pcs', 'placa')
+        self.populate_combobox(self.combo_pc_ram, 'pcs', 'ram')
+        self.populate_combobox(self.combo_pc_core, 'pcs', 'core')
+        self.populate_combobox(self.combo_pc_disco, 'pcs', 'disco')
+        self.populate_combobox(self.combo_pc_so, 'pcs', 'so')
+        self.populate_combobox(self.combo_pc_fuente, 'pcs', 'fuente')
+        self.populate_combobox(self.combo_pc_antivirus, 'pcs', 'antivirus')
+        self.populate_combobox(self.combo_proy_modelo, 'proyectores', 'modelo')
+        self.populate_combobox(self.combo_imp_modelo, 'impresoras', 'modelo')
+        self.populate_combobox(self.combo_srv_modelo, 'servidores', 'modelo')
+        self.populate_combobox(self.combo_red_modelo, 'red', 'modelo')
+        self.populate_combobox(self.combo_cctv_rec_marca, 'cctv_recorders', 'marca')
+        self.populate_combobox(self.combo_cctv_rec_modelo, 'cctv_recorders', 'modelo')
+        self.populate_combobox(self.combo_cctv_cam_marca, 'cctv_cameras', 'marca')
+        self.populate_combobox(self.combo_cctv_cam_modelo, 'cctv_cameras', 'modelo')
+        self.populate_combobox(self.combo_cctv_cam_lente, 'cctv_cameras', 'tipo_lente')
+        self.populate_combobox(self.combo_acceso_marca, 'accesos', 'marca')
+        self.populate_combobox(self.combo_acceso_modelo, 'accesos', 'modelo')
+        self.populate_combobox(self.combo_sw_nombre, 'software', 'nombre')
 
     def save_all_data(self):
         data = (
@@ -451,16 +469,21 @@ class MainWindow(QMainWindow):
             self.label_plano_path.setText(filename)
     
     def refresh_all_tables(self):
-        self.refresh_table('pcs', ['ID', 'Código', 'Placa', 'RAM', 'Core', 'Disco', 'S.O.', 'Fuente', 'Antivirus', 'Ubicación', 'Obs.'])
-        self.refresh_table('proyectores', ['ID', 'Código', 'Modelo', 'Táctil', 'Ubicación', 'Obs.'])
-        self.refresh_table('impresoras', ['ID', 'Código', 'Modelo', 'Conexión', 'Ubicación', 'Obs.'])
-        self.refresh_table('servidores', ['ID', 'Código', 'Modelo', 'Uso', 'Ubicación', 'Obs.'])
-        self.refresh_table('red', ['ID', 'Código', 'Tipo', 'Modelo', 'Ubicación', 'Obs.'])
-        self.refresh_table('cctv_recorders', ['ID', 'Marca', 'Modelo', 'Canales', 'Ubicación', 'Obs.'])
-        self.refresh_table('cctv_cameras', ['ID', 'Marca', 'Modelo', 'Lente', 'Ubicación', 'Obs.'])
-        self.refresh_table('accesos', ['ID', 'Marca', 'Modelo', 'Tipo', 'Ubicación', 'Obs.'])
-        self.refresh_table('software', ['ID', 'Software', 'Licencia'])
-        self.refresh_table('credenciales', ['ID', 'Elemento', 'Usuario', 'Contraseña', 'Notas'])
+        tables_headers = {
+            'pcs': ['ID', 'Código', 'Placa', 'RAM', 'Core', 'Disco', 'S.O.', 'Fuente', 'Antivirus', 'Ubicación', 'Obs.'],
+            'proyectores': ['ID', 'Código', 'Modelo', 'Táctil', 'Ubicación', 'Obs.'],
+            'impresoras': ['ID', 'Código', 'Modelo', 'Conexión', 'Ubicación', 'Obs.'],
+            'servidores': ['ID', 'Código', 'Modelo', 'Uso', 'Ubicación', 'Obs.'],
+            'red': ['ID', 'Código', 'Tipo', 'Modelo', 'Ubicación', 'Obs.'],
+            'cctv_recorders': ['ID', 'Marca', 'Modelo', 'Canales', 'Ubicación', 'Obs.'],
+            'cctv_cameras': ['ID', 'Marca', 'Modelo', 'Lente', 'Ubicación', 'Obs.'],
+            'accesos': ['ID', 'Marca', 'Modelo', 'Tipo', 'Ubicación', 'Obs.'],
+            'software': ['ID', 'Software', 'Licencia'],
+            'credenciales': ['ID', 'Elemento', 'Usuario', 'Contraseña', 'Notas']
+        }
+        for table_name, headers in tables_headers.items():
+            self.refresh_table(table_name, headers)
+
     def refresh_table(self, table_name, headers):
         table_widget = getattr(self, f"table_{table_name}")
         table_widget.setRowCount(0)
@@ -481,7 +504,6 @@ class MainWindow(QMainWindow):
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
         
         if reply == QMessageBox.StandardButton.Yes:
-            # Eliminar imágenes asociadas
             images = self.db.fetch_all("SELECT image_path FROM images WHERE item_type=? AND item_id=?", (table_name, item_id))
             for (img_path,) in images:
                 try:
@@ -492,206 +514,199 @@ class MainWindow(QMainWindow):
                     print(f"No se pudo borrar el archivo de imagen {img_path}: {e}")
             self.db.execute_query("DELETE FROM images WHERE item_type=? AND item_id=?", (table_name, item_id))
             
-            # Eliminar el item
             self.db.execute_query(f"DELETE FROM {table_name} WHERE id=?", (item_id,))
             
-            self.refresh_table(table_name, [table_widget.horizontalHeaderItem(i).text() for i in range(1, table_widget.columnCount())])
+            self.refresh_all_tables()
+            self.populate_all_comboboxes()
             clear_func()
             QMessageBox.information(self, "Éxito", "Elemento eliminado.")
 
     def _save_item(self, item_type, data_tuple, insert_query, update_query, headers):
         clear_func = getattr(self, f"clear_{item_type}_inputs")
         if self.editing_item_type == item_type and self.editing_item_id is not None:
-            # ACTUALIZAR
             self.db.execute_query(update_query, data_tuple + (self.editing_item_id,))
-            self.editing_item_id = None
-            self.editing_item_type = None
         else:
-            # INSERTAR
             self.db.execute_query(insert_query, (self.current_inventory_id,) + data_tuple)
         
         self.refresh_table(item_type, headers)
+        self.populate_all_comboboxes()
         clear_func()
+    
+    def _get_combo_text(self, combo):
+        return combo.currentText()
 
-    # --- Métodos de edición, limpieza y guardado para cada tipo de item ---
-
-    # --- PCs ---
+    # --- SECCIÓN PC ---
     def edit_pc(self, item_id):
         data = self.db.fetch_one("SELECT * FROM pcs WHERE id = ?", (item_id,))
         if data:
-            self.input_pc_codigo.setText(data[2]); self.input_pc_placa.setText(data[3]); self.input_pc_ram.setText(data[4])
-            self.input_pc_core.setText(data[5]); self.input_pc_disco.setText(data[6]); self.input_pc_so.setText(data[7])
-            self.input_pc_fuente.setText(data[8]); self.input_pc_antivirus.setText(data[9]); self.input_pc_ubicacion.setText(data[10])
+            self.input_pc_codigo.setText(data[2]); self.combo_pc_placa.setCurrentText(data[3]); self.combo_pc_ram.setCurrentText(data[4])
+            self.combo_pc_core.setCurrentText(data[5]); self.combo_pc_disco.setCurrentText(data[6]); self.combo_pc_so.setCurrentText(data[7])
+            self.combo_pc_fuente.setCurrentText(data[8]); self.combo_pc_antivirus.setCurrentText(data[9]); self.input_pc_ubicacion.setText(data[10])
             self.input_pc_obs.setText(data[11])
             
     def clear_pcs_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_pc_codigo.clear(); self.input_pc_placa.clear(); self.input_pc_ram.clear()
-        self.input_pc_core.clear(); self.input_pc_disco.clear(); self.input_pc_so.clear()
-        self.input_pc_fuente.clear(); self.input_pc_antivirus.clear(); self.input_pc_ubicacion.clear()
+        self.input_pc_codigo.clear()
+        self.combo_pc_placa.setCurrentText(""); self.combo_pc_ram.setCurrentText("")
+        self.combo_pc_core.setCurrentText(""); self.combo_pc_disco.setCurrentText("")
+        self.combo_pc_so.setCurrentText(""); self.combo_pc_fuente.setCurrentText("")
+        self.combo_pc_antivirus.setCurrentText(""); self.input_pc_ubicacion.clear()
         self.input_pc_obs.clear()
         
     def save_pc(self):
         data_tuple = (
-            self.input_pc_codigo.text(), self.input_pc_placa.text(), self.input_pc_ram.text(), self.input_pc_core.text(),
-            self.input_pc_disco.text(), self.input_pc_so.text(), self.input_pc_fuente.text(), self.input_pc_antivirus.text(),
+            self.input_pc_codigo.text(), self._get_combo_text(self.combo_pc_placa), self._get_combo_text(self.combo_pc_ram),
+            self._get_combo_text(self.combo_pc_core), self._get_combo_text(self.combo_pc_disco), self._get_combo_text(self.combo_pc_so),
+            self._get_combo_text(self.combo_pc_fuente), self._get_combo_text(self.combo_pc_antivirus),
             self.input_pc_ubicacion.text(), self.input_pc_obs.text()
         )
         insert_q = "INSERT INTO pcs (inventario_id, codigo, placa, ram, core, disco, so, fuente, antivirus, ubicacion_equipo, observaciones) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
         update_q = "UPDATE pcs SET codigo=?, placa=?, ram=?, core=?, disco=?, so=?, fuente=?, antivirus=?, ubicacion_equipo=?, observaciones=? WHERE id=?"
-        headers = ['ID', 'Código', 'Placa', 'RAM', 'Core', 'Disco', 'S.O.', 'Fuente', 'Antivirus', 'Ubicación', 'Obs.']
-        self._save_item('pcs', data_tuple, insert_q, update_q, headers)
+        self._save_item('pcs', data_tuple, insert_q, update_q, ['ID', 'Código', 'Placa', 'RAM', 'Core', 'Disco', 'S.O.', 'Fuente', 'Antivirus', 'Ubicación', 'Obs.'])
     
-    # --- Proyectores ---
+    # --- PROYECTORES ---
     def edit_proyector(self, item_id):
         data = self.db.fetch_one("SELECT * FROM proyectores WHERE id=?", (item_id,))
         if data:
-            self.input_proy_codigo.setText(data[2]); self.input_proy_modelo.setText(data[3]); 
+            self.input_proy_codigo.setText(data[2]); self.combo_proy_modelo.setCurrentText(data[3]); 
             self.combo_proy_tactil.setCurrentText(data[4]); self.input_proy_ubicacion.setText(data[5]); self.input_proy_obs.setText(data[6])
 
     def clear_proyectores_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_proy_codigo.clear(); self.input_proy_modelo.clear(); self.combo_proy_tactil.setCurrentIndex(0)
+        self.input_proy_codigo.clear(); self.combo_proy_modelo.setCurrentText(""); self.combo_proy_tactil.setCurrentIndex(0)
         self.input_proy_ubicacion.clear(); self.input_proy_obs.clear()
         
     def save_proyector(self):
-        data_tuple = (self.input_proy_codigo.text(), self.input_proy_modelo.text(), self.combo_proy_tactil.currentText(), self.input_proy_ubicacion.text(), self.input_proy_obs.text())
+        data_tuple = (self.input_proy_codigo.text(), self._get_combo_text(self.combo_proy_modelo), self.combo_proy_tactil.currentText(), self.input_proy_ubicacion.text(), self.input_proy_obs.text())
         insert_q = "INSERT INTO proyectores (inventario_id, codigo, modelo, tactil, ubicacion_equipo, observaciones) VALUES (?,?,?,?,?,?)"
         update_q = "UPDATE proyectores SET codigo=?, modelo=?, tactil=?, ubicacion_equipo=?, observaciones=? WHERE id=?"
-        headers = ['ID', 'Código', 'Modelo', 'Táctil', 'Ubicación', 'Obs.']
-        self._save_item('proyectores', data_tuple, insert_q, update_q, headers)
+        self._save_item('proyectores', data_tuple, insert_q, update_q, ['ID', 'Código', 'Modelo', 'Táctil', 'Ubicación', 'Obs.'])
     
-    # --- Impresoras ---
+    # --- IMPRESORAS ---
     def edit_impresora(self, item_id):
         data = self.db.fetch_one("SELECT * FROM impresoras WHERE id=?", (item_id,))
         if data:
-            self.input_imp_codigo.setText(data[2]); self.input_imp_modelo.setText(data[3]);
+            self.input_imp_codigo.setText(data[2]); self.combo_imp_modelo.setCurrentText(data[3]);
             self.combo_imp_conexion.setCurrentText(data[4]); self.input_imp_ubicacion.setText(data[5]); self.input_imp_obs.setText(data[6])
 
     def clear_impresoras_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_imp_codigo.clear(); self.input_imp_modelo.clear(); self.combo_imp_conexion.setCurrentIndex(0)
+        self.input_imp_codigo.clear(); self.combo_imp_modelo.setCurrentText(""); self.combo_imp_conexion.setCurrentIndex(0)
         self.input_imp_ubicacion.clear(); self.input_imp_obs.clear()
 
     def save_impresora(self):
-        data_tuple = (self.input_imp_codigo.text(), self.input_imp_modelo.text(), self.combo_imp_conexion.currentText(), self.input_imp_ubicacion.text(), self.input_imp_obs.text())
+        data_tuple = (self.input_imp_codigo.text(), self._get_combo_text(self.combo_imp_modelo), self.combo_imp_conexion.currentText(), self.input_imp_ubicacion.text(), self.input_imp_obs.text())
         insert_q = "INSERT INTO impresoras (inventario_id, codigo, modelo, conexion, ubicacion_equipo, observaciones) VALUES (?,?,?,?,?,?)"
         update_q = "UPDATE impresoras SET codigo=?, modelo=?, conexion=?, ubicacion_equipo=?, observaciones=? WHERE id=?"
-        headers = ['ID', 'Código', 'Modelo', 'Conexión', 'Ubicación', 'Obs.']
-        self._save_item('impresoras', data_tuple, insert_q, update_q, headers)
+        self._save_item('impresoras', data_tuple, insert_q, update_q, ['ID', 'Código', 'Modelo', 'Conexión', 'Ubicación', 'Obs.'])
 
-    # --- Servidores ---
+    # --- SERVIDORES ---
     def edit_servidor(self, item_id):
         data = self.db.fetch_one("SELECT * FROM servidores WHERE id=?", (item_id,))
         if data:
-            self.input_srv_codigo.setText(data[2]); self.input_srv_modelo.setText(data[3]);
+            self.input_srv_codigo.setText(data[2]); self.combo_srv_modelo.setCurrentText(data[3]);
             self.input_srv_uso.setText(data[4]); self.input_srv_ubicacion.setText(data[5]); self.input_srv_obs.setText(data[6])
 
     def clear_servidores_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_srv_codigo.clear(); self.input_srv_modelo.clear(); self.input_srv_uso.clear()
+        self.input_srv_codigo.clear(); self.combo_srv_modelo.setCurrentText(""); self.input_srv_uso.clear()
         self.input_srv_ubicacion.clear(); self.input_srv_obs.clear()
         
     def save_servidor(self):
-        data_tuple = (self.input_srv_codigo.text(), self.input_srv_modelo.text(), self.input_srv_uso.text(), self.input_srv_ubicacion.text(), self.input_srv_obs.text())
+        data_tuple = (self.input_srv_codigo.text(), self._get_combo_text(self.combo_srv_modelo), self.input_srv_uso.text(), self.input_srv_ubicacion.text(), self.input_srv_obs.text())
         insert_q = "INSERT INTO servidores (inventario_id, codigo, modelo, uso, ubicacion_equipo, observaciones) VALUES (?,?,?,?,?,?)"
         update_q = "UPDATE servidores SET codigo=?, modelo=?, uso=?, ubicacion_equipo=?, observaciones=? WHERE id=?"
-        headers = ['ID', 'Código', 'Modelo', 'Uso', 'Ubicación', 'Obs.']
-        self._save_item('servidores', data_tuple, insert_q, update_q, headers)
+        self._save_item('servidores', data_tuple, insert_q, update_q, ['ID', 'Código', 'Modelo', 'Uso', 'Ubicación', 'Obs.'])
 
-    # --- Red ---
+    # --- RED ---
     def edit_red(self, item_id):
         data = self.db.fetch_one("SELECT * FROM red WHERE id=?", (item_id,))
         if data:
             self.input_red_codigo.setText(data[2]); self.combo_red_tipo.setCurrentText(data[3]);
-            self.input_red_modelo.setText(data[4]); self.input_red_ubicacion.setText(data[5]); self.input_red_obs.setText(data[6])
+            self.combo_red_modelo.setCurrentText(data[4]); self.input_red_ubicacion.setText(data[5]); self.input_red_obs.setText(data[6])
 
     def clear_red_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_red_codigo.clear(); self.combo_red_tipo.setCurrentIndex(0); self.input_red_modelo.clear()
+        self.input_red_codigo.clear(); self.combo_red_tipo.setCurrentIndex(0); self.combo_red_modelo.setCurrentText("")
         self.input_red_ubicacion.clear(); self.input_red_obs.clear()
         
     def save_red(self):
-        data_tuple = (self.input_red_codigo.text(), self.combo_red_tipo.currentText(), self.input_red_modelo.text(), self.input_red_ubicacion.text(), self.input_red_obs.text())
+        data_tuple = (self.input_red_codigo.text(), self.combo_red_tipo.currentText(), self._get_combo_text(self.combo_red_modelo), self.input_red_ubicacion.text(), self.input_red_obs.text())
         insert_q = "INSERT INTO red (inventario_id, codigo, tipo, modelo, ubicacion_equipo, observaciones) VALUES (?,?,?,?,?,?)"
         update_q = "UPDATE red SET codigo=?, tipo=?, modelo=?, ubicacion_equipo=?, observaciones=? WHERE id=?"
-        headers = ['ID', 'Código', 'Tipo', 'Modelo', 'Ubicación', 'Obs.']
-        self._save_item('red', data_tuple, insert_q, update_q, headers)
-    # --- Grabadores CCTV ---
+        self._save_item('red', data_tuple, insert_q, update_q, ['ID', 'Código', 'Tipo', 'Modelo', 'Ubicación', 'Obs.'])
+        
+    # --- CCTV GRABADORES ---
     def edit_recorder(self, item_id):
         data = self.db.fetch_one("SELECT * FROM cctv_recorders WHERE id=?", (item_id,))
         if data:
-            self.input_cctv_rec_marca.setText(data[2]); self.input_cctv_rec_modelo.setText(data[3]);
+            self.combo_cctv_rec_marca.setCurrentText(data[2]); self.combo_cctv_rec_modelo.setCurrentText(data[3]);
             self.input_cctv_rec_canales.setText(data[4]); self.input_cctv_rec_ubicacion.setText(data[5]); self.input_cctv_rec_obs.setText(data[6])
 
     def clear_cctv_recorders_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_cctv_rec_marca.clear(); self.input_cctv_rec_modelo.clear(); self.input_cctv_rec_canales.clear()
+        self.combo_cctv_rec_marca.setCurrentText(""); self.combo_cctv_rec_modelo.setCurrentText(""); self.input_cctv_rec_canales.clear()
         self.input_cctv_rec_ubicacion.clear(); self.input_cctv_rec_obs.clear()
         
     def save_recorder(self):
-        data_tuple = (self.input_cctv_rec_marca.text(), self.input_cctv_rec_modelo.text(), self.input_cctv_rec_canales.text(), self.input_cctv_rec_ubicacion.text(), self.input_cctv_rec_obs.text())
+        data_tuple = (self._get_combo_text(self.combo_cctv_rec_marca), self._get_combo_text(self.combo_cctv_rec_modelo), self.input_cctv_rec_canales.text(), self.input_cctv_rec_ubicacion.text(), self.input_cctv_rec_obs.text())
         insert_q = "INSERT INTO cctv_recorders (inventario_id, marca, modelo, canales, ubicacion, observaciones) VALUES (?,?,?,?,?,?)"
         update_q = "UPDATE cctv_recorders SET marca=?, modelo=?, canales=?, ubicacion=?, observaciones=? WHERE id=?"
-        headers = ['ID', 'Marca', 'Modelo', 'Canales', 'Ubicación', 'Obs.']
-        self._save_item('cctv_recorders', data_tuple, insert_q, update_q, headers)
+        self._save_item('cctv_recorders', data_tuple, insert_q, update_q, ['ID', 'Marca', 'Modelo', 'Canales', 'Ubicación', 'Obs.'])
 
-    # --- Cámaras CCTV ---
+    # --- CCTV CAMARAS ---
     def edit_camera(self, item_id):
         data = self.db.fetch_one("SELECT * FROM cctv_cameras WHERE id=?", (item_id,))
         if data:
-            self.input_cctv_cam_marca.setText(data[2]); self.input_cctv_cam_modelo.setText(data[3]);
-            self.input_cctv_cam_lente.setText(data[4]); self.input_cctv_cam_ubicacion.setText(data[5]); self.input_cctv_cam_obs.setText(data[6])
+            self.combo_cctv_cam_marca.setCurrentText(data[2]); self.combo_cctv_cam_modelo.setCurrentText(data[3]);
+            self.combo_cctv_cam_lente.setCurrentText(data[4]); self.input_cctv_cam_ubicacion.setText(data[5]); self.input_cctv_cam_obs.setText(data[6])
 
     def clear_cctv_cameras_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_cctv_cam_marca.clear(); self.input_cctv_cam_modelo.clear(); self.input_cctv_cam_lente.clear()
+        self.combo_cctv_cam_marca.setCurrentText(""); self.combo_cctv_cam_modelo.setCurrentText(""); self.combo_cctv_cam_lente.setCurrentText("")
         self.input_cctv_cam_ubicacion.clear(); self.input_cctv_cam_obs.clear()
 
     def save_camera(self):
-        data_tuple = (self.input_cctv_cam_marca.text(), self.input_cctv_cam_modelo.text(), self.input_cctv_cam_lente.text(), self.input_cctv_cam_ubicacion.text(), self.input_cctv_cam_obs.text())
+        data_tuple = (self._get_combo_text(self.combo_cctv_cam_marca), self._get_combo_text(self.combo_cctv_cam_modelo), self._get_combo_text(self.combo_cctv_cam_lente), self.input_cctv_cam_ubicacion.text(), self.input_cctv_cam_obs.text())
         insert_q = "INSERT INTO cctv_cameras (inventario_id, marca, modelo, tipo_lente, ubicacion, observaciones) VALUES (?,?,?,?,?,?)"
         update_q = "UPDATE cctv_cameras SET marca=?, modelo=?, tipo_lente=?, ubicacion=?, observaciones=? WHERE id=?"
-        headers = ['ID', 'Marca', 'Modelo', 'Lente', 'Ubicación', 'Obs.']
-        self._save_item('cctv_cameras', data_tuple, insert_q, update_q, headers)
+        self._save_item('cctv_cameras', data_tuple, insert_q, update_q, ['ID', 'Marca', 'Modelo', 'Lente', 'Ubicación', 'Obs.'])
 
-    # --- Control de Acceso ---
+    # --- ACCESOS ---
     def edit_acceso(self, item_id):
         data = self.db.fetch_one("SELECT * FROM accesos WHERE id=?", (item_id,))
         if data:
-            self.input_acceso_marca.setText(data[2]); self.input_acceso_modelo.setText(data[3]);
+            self.combo_acceso_marca.setCurrentText(data[2]); self.combo_acceso_modelo.setCurrentText(data[3]);
             self.combo_acceso_tipo.setCurrentText(data[4]); self.input_acceso_ubicacion.setText(data[5]); self.input_acceso_obs.setText(data[6])
 
     def clear_accesos_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_acceso_marca.clear(); self.input_acceso_modelo.clear(); self.combo_acceso_tipo.setCurrentIndex(0)
+        self.combo_acceso_marca.setCurrentText(""); self.combo_acceso_modelo.setCurrentText(""); self.combo_acceso_tipo.setCurrentIndex(0)
         self.input_acceso_ubicacion.clear(); self.input_acceso_obs.clear()
 
     def save_acceso(self):
-        data_tuple = (self.input_acceso_marca.text(), self.input_acceso_modelo.text(), self.combo_acceso_tipo.currentText(), self.input_acceso_ubicacion.text(), self.input_acceso_obs.text())
+        data_tuple = (self._get_combo_text(self.combo_acceso_marca), self._get_combo_text(self.combo_acceso_modelo), self.combo_acceso_tipo.currentText(), self.input_acceso_ubicacion.text(), self.input_acceso_obs.text())
         insert_q = "INSERT INTO accesos (inventario_id, marca, modelo, tipo, ubicacion, observaciones) VALUES (?,?,?,?,?,?)"
         update_q = "UPDATE accesos SET marca=?, modelo=?, tipo=?, ubicacion=?, observaciones=? WHERE id=?"
-        headers = ['ID', 'Marca', 'Modelo', 'Tipo', 'Ubicación', 'Obs.']
-        self._save_item('accesos', data_tuple, insert_q, update_q, headers)
+        self._save_item('accesos', data_tuple, insert_q, update_q, ['ID', 'Marca', 'Modelo', 'Tipo', 'Ubicación', 'Obs.'])
 
-    # --- Software ---
+    # --- SOFTWARE ---
     def edit_software(self, item_id):
         data = self.db.fetch_one("SELECT * FROM software WHERE id=?", (item_id,))
         if data:
-            self.input_sw_nombre.setText(data[2]); self.input_sw_licencia.setText(data[3])
+            self.combo_sw_nombre.setCurrentText(data[2]); self.input_sw_licencia.setText(data[3])
             
     def clear_software_inputs(self):
         self.editing_item_id = None; self.editing_item_type = None
-        self.input_sw_nombre.clear(); self.input_sw_licencia.clear()
+        self.combo_sw_nombre.setCurrentText(""); self.input_sw_licencia.clear()
 
     def save_software(self):
-        data_tuple = (self.input_sw_nombre.text(), self.input_sw_licencia.text())
+        data_tuple = (self._get_combo_text(self.combo_sw_nombre), self.input_sw_licencia.text())
         insert_q = "INSERT INTO software (inventario_id, nombre, licencia) VALUES (?,?,?)"
         update_q = "UPDATE software SET nombre=?, licencia=? WHERE id=?"
-        headers = ['ID', 'Software', 'Licencia']
-        self._save_item('software', data_tuple, insert_q, update_q, headers)
+        self._save_item('software', data_tuple, insert_q, update_q, ['ID', 'Software', 'Licencia'])
 
-    # --- Credenciales ---
+    # --- CREDENCIALES ---
     def edit_credencial(self, item_id):
         data = self.db.fetch_one("SELECT * FROM credenciales WHERE id=?", (item_id,))
         if data:
@@ -707,8 +722,7 @@ class MainWindow(QMainWindow):
         data_tuple = (self.input_cred_elemento.text(), self.input_cred_usuario.text(), self.input_cred_clave.text(), self.input_cred_notas.text())
         insert_q = "INSERT INTO credenciales (inventario_id, elemento, usuario, clave, notas) VALUES (?,?,?,?,?)"
         update_q = "UPDATE credenciales SET elemento=?, usuario=?, clave=?, notas=? WHERE id=?"
-        headers = ['ID', 'Elemento', 'Usuario', 'Contraseña', 'Notas']
-        self._save_item('credenciales', data_tuple, insert_q, update_q, headers)
+        self._save_item('credenciales', data_tuple, insert_q, update_q, ['ID', 'Elemento', 'Usuario', 'Contraseña', 'Notas'])
 
     # --- Exportación ---
     def _get_full_data_for_export(self):
@@ -763,7 +777,6 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Error de Exportación", f"No se pudo generar el archivo Excel. Error: {e}")
 
-
 # --- Bucle principal de la aplicación ---
 class App(QApplication):
     def __init__(self, argv):
@@ -792,7 +805,6 @@ class App(QApplication):
         return 0
 
 if __name__ == "__main__":
-    # Crear carpeta de datos si no existe
     os.makedirs(resource_path('data/images'), exist_ok=True)
     app = App(sys.argv)
     sys.exit(app.run())

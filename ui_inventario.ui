@@ -187,7 +187,11 @@
             </widget>
            </item>
            <item row="0" column="3">
-            <widget class="QLineEdit" name="input_pc_placa"/>
+            <widget class="QComboBox" name="combo_pc_placa">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="0" column="4">
             <widget class="QLabel" name="label_12">
@@ -197,7 +201,11 @@
             </widget>
            </item>
            <item row="0" column="5">
-            <widget class="QLineEdit" name="input_pc_ram"/>
+            <widget class="QComboBox" name="combo_pc_ram">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_13">
@@ -207,7 +215,11 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QLineEdit" name="input_pc_core"/>
+            <widget class="QComboBox" name="combo_pc_core">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="2">
             <widget class="QLabel" name="label_14">
@@ -217,7 +229,11 @@
             </widget>
            </item>
            <item row="1" column="3">
-            <widget class="QLineEdit" name="input_pc_disco"/>
+            <widget class="QComboBox" name="combo_pc_disco">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="4">
             <widget class="QLabel" name="label_15">
@@ -227,7 +243,11 @@
             </widget>
            </item>
            <item row="1" column="5">
-            <widget class="QLineEdit" name="input_pc_so"/>
+            <widget class="QComboBox" name="combo_pc_so">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_16">
@@ -237,7 +257,11 @@
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QLineEdit" name="input_pc_fuente"/>
+            <widget class="QComboBox" name="combo_pc_fuente">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="2" column="2">
             <widget class="QLabel" name="label_41">
@@ -247,7 +271,11 @@
             </widget>
            </item>
            <item row="2" column="3">
-            <widget class="QLineEdit" name="input_pc_antivirus"/>
+            <widget class="QComboBox" name="combo_pc_antivirus">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="2" column="4">
             <widget class="QLabel" name="label_17">
@@ -386,7 +414,11 @@
             </widget>
            </item>
            <item row="0" column="3">
-            <widget class="QLineEdit" name="input_proy_modelo"/>
+            <widget class="QComboBox" name="combo_proy_modelo">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_42">
@@ -516,12 +548,16 @@
            <item row="0" column="2">
             <widget class="QLabel" name="label_23">
              <property name="text">
-              <string>Modelo/Placa:</string>
+              <string>Modelo:</string>
              </property>
             </widget>
            </item>
            <item row="0" column="3">
-            <widget class="QLineEdit" name="input_imp_modelo"/>
+            <widget class="QComboBox" name="combo_imp_modelo">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_43">
@@ -661,7 +697,11 @@
             </widget>
            </item>
            <item row="0" column="3">
-            <widget class="QLineEdit" name="input_srv_modelo"/>
+            <widget class="QComboBox" name="combo_srv_modelo">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_27">
@@ -821,7 +861,11 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QLineEdit" name="input_red_modelo"/>
+            <widget class="QComboBox" name="combo_red_modelo">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="2">
             <widget class="QLabel" name="label_36">
@@ -925,7 +969,11 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="input_cctv_rec_marca"/>
+            <widget class="QComboBox" name="combo_cctv_rec_marca">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="0" column="2">
             <widget class="QLabel" name="label_45">
@@ -935,7 +983,11 @@
             </widget>
            </item>
            <item row="0" column="3">
-            <widget class="QLineEdit" name="input_cctv_rec_modelo"/>
+            <widget class="QComboBox" name="combo_cctv_rec_modelo">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_46">
@@ -1049,7 +1101,11 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="input_cctv_cam_marca"/>
+            <widget class="QComboBox" name="combo_cctv_cam_marca">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="0" column="2">
             <widget class="QLabel" name="label_50">
@@ -1059,7 +1115,11 @@
             </widget>
            </item>
            <item row="0" column="3">
-            <widget class="QLineEdit" name="input_cctv_cam_modelo"/>
+            <widget class="QComboBox" name="combo_cctv_cam_modelo">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_51">
@@ -1069,7 +1129,11 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QLineEdit" name="input_cctv_cam_lente"/>
+            <widget class="QComboBox" name="combo_cctv_cam_lente">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="2">
             <widget class="QLabel" name="label_52">
@@ -1173,7 +1237,11 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="input_acceso_marca"/>
+            <widget class="QComboBox" name="combo_acceso_marca">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="0" column="2">
             <widget class="QLabel" name="label_55">
@@ -1183,7 +1251,11 @@
             </widget>
            </item>
            <item row="0" column="3">
-            <widget class="QLineEdit" name="input_acceso_modelo"/>
+            <widget class="QComboBox" name="combo_acceso_modelo">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_56">
@@ -1307,7 +1379,7 @@
         <item>
          <widget class="QGroupBox" name="groupBox_6">
           <property name="title">
-           <string>Licencias de Software (Office, Antivirus, etc.)</string>
+           <string>Licencias de Software</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_10">
            <item row="0" column="0">
@@ -1318,7 +1390,11 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="input_sw_nombre"/>
+            <widget class="QComboBox" name="combo_sw_nombre">
+             <property name="editable">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item row="0" column="2">
             <widget class="QLabel" name="label_39">
